@@ -25,7 +25,12 @@ jobs:
           java-version: 17
 
       - name: Strumenti Android
-        uses: android-actions/setup-android@v3
+        shell: bash
+        run: |
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          if [ ! -d "$SDK" ]; then echo "::error::Strumenti Android non trovati sul sistema di costruzione"; exit 1; fi
+          echo "sdk.dir=$SDK" > android/local.properties
+          echo "Android SDK: $SDK"
 
       - name: Installa le dipendenze
         run: npm ci
@@ -57,13 +62,16 @@ jobs:
           path: deck-lab-bbx.apk
 
       - name: Pubblica nella pagina di download
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: latest
-          name: Deck Lab BBX
-          make_latest: true
-          files: deck-lab-bbx.apk
-          body: |
-            Ultima versione di Deck Lab BBX per Android (costruzione n. ${{ github.run_number }}).
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          NOTE="Ultima versione di Deck Lab BBX per Android (costruzione n. ${{ github.run_number }}).
 
-            Scarica **deck-lab-bbx.apk** qui sotto e aprilo sul telefono. Se Android lo chiede, consenti l'installazione di app da questa origine.
+          Scarica deck-lab-bbx.apk qui sotto e aprilo sul telefono. Se Android lo chiede, consenti l'installazione di app da questa origine."
+          if gh release view latest >/dev/null 2>&1; then
+            gh release upload latest deck-lab-bbx.apk --clobber
+            gh release edit latest --title "Deck Lab BBX" --notes "$NOTE" --latest
+          else
+            gh release create latest deck-lab-bbx.apk --title "Deck Lab BBX" --notes "$NOTE" --latest
+          fi
