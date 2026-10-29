@@ -1,0 +1,9 @@
+{
+  "appId": "com.alzirollo.decklab",
+  "appName": "Deck Lab BBX",
+  "webDir": "www",
+  "android": { "backgroundColor": "#eef1f4" },
+  "plugins": {
+    "CapacitorHttp": { "enabled": true }
+  }
+}

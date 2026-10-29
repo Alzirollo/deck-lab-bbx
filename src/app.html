@@ -1,0 +1,1751 @@
+<title>Deck Lab BBX</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: banco da officina. Testata fissa con le schede, colonna unica larga 960px, pannelli a griglia che si impilano su telefono. */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --sunk:#e6eaef; --ink:#12161c; --muted:#5b6673; --line:#d4dae2;
+  --accent:#d9501a; --accent-ink:#ffffff; --accent-soft:#fbe3d8;
+  --good:#1d7f47; --bad:#b8372b; --warn:#9a6512;
+  --f-display:"Chakra Petch", "Arial Narrow", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1318; --surface:#171c23; --sunk:#11161c; --ink:#e7ecf2; --muted:#93a0ad; --line:#2a323c;
+  --accent:#ff7a3d; --accent-ink:#1a0d06; --accent-soft:#3a2216;
+  --good:#46c27a; --bad:#f07264; --warn:#e3a744; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0f1318; --surface:#171c23; --sunk:#11161c; --ink:#e7ecf2; --muted:#93a0ad; --line:#2a323c;
+  --accent:#ff7a3d; --accent-ink:#1a0d06; --accent-soft:#3a2216;
+  --good:#46c27a; --bad:#f07264; --warn:#e3a744; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:960px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.top{display:flex;align-items:center;gap:10px;padding-block:8px}
+.brand{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;gap:8px;min-width:0}
+.burger{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;flex:none}
+.burger[aria-expanded="true"]{background:var(--sunk)}
+.brand svg{flex:none}
+.sync{margin-left:auto;font-family:var(--f-mono);font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;max-width:45%}
+nav{display:grid;gap:2px;padding-block:4px 10px;border-top:1px solid var(--line)}
+nav[hidden]{display:none}
+nav button{font-family:var(--f-display);font-weight:600;font-size:17px;letter-spacing:.04em;text-transform:uppercase;background:none;border:0;border-left:3px solid transparent;color:var(--muted);padding:11px 12px;text-align:left;cursor:pointer;border-radius:0 6px 6px 0}
+nav button:hover{background:var(--sunk)}
+nav button[aria-selected="true"]{color:var(--ink);border-left-color:var(--accent);background:var(--sunk)}
+main{padding-block:24px 64px;display:grid;gap:24px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;line-height:1.2}
+h2{font-size:24px;font-weight:700}
+h3{font-size:16px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:grid;gap:14px;min-width:0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.stack{display:grid;gap:10px}
+button.btn,a.btn{font:600 14px var(--f-body);border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+button.btn.primary,a.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button.btn.ghost{border-color:transparent;background:none;color:var(--muted);padding:6px 8px}
+button.btn:disabled{opacity:.5;cursor:default}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:7px;padding:7px 9px;min-width:0}
+textarea{width:100%;min-height:110px;font-family:var(--f-mono);font-size:13px}
+label.f{display:grid;gap:4px;font-size:13px;color:var(--muted)}
+label.chk{display:flex;gap:8px;align-items:center;cursor:pointer}
+.chip{display:inline-block;font:500 12px var(--f-mono);padding:2px 7px;border-radius:999px;background:var(--sunk);border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.chip.acc{background:var(--accent-soft);border-color:transparent;color:var(--accent)}
+.chip.bad{color:var(--bad)}
+.chip.good{color:var(--good)}
+.chip.warn{color:var(--warn)}
+
+/* Deck */
+.deck-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.score-big{font:700 40px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.combo{border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:10px;background:var(--surface);min-width:0}
+.combo .slot{font:600 12px var(--f-mono);color:var(--accent)}
+.combo .name{font:700 19px/1.2 var(--f-display)}
+.combo .code{font:500 15px var(--f-mono);color:var(--muted)}
+.bars{display:grid;gap:5px}
+.bar{display:grid;grid-template-columns:62px 1fr 34px;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
+.bar i{display:block;height:6px;border-radius:3px;background:var(--sunk);position:relative;overflow:hidden}
+.bar i b{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:3px}
+.bar span:last-child{text-align:right;font-family:var(--f-mono);color:var(--ink)}
+.alt{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.alt:first-child{border-top:0}
+.ai-out{background:var(--sunk);border-radius:8px;padding:14px;display:grid;gap:10px;font-size:14px}
+.ai-out ul{margin:0;padding-left:18px}
+.msg{display:grid;gap:2px;padding:10px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--line);max-width:100%;overflow-wrap:anywhere}
+.msg.user{background:var(--accent-soft);border-color:transparent}
+
+/* Tables */
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font:600 12px var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+td input,td select{padding:5px 7px;font-size:13px}
+td input.qty{width:56px}
+tr.off td{opacity:.55}
+.rank{display:grid;grid-template-columns:30px 1fr 44px;gap:8px;align-items:center;padding:5px 0;font-size:14px}
+.rank .r{font:500 12px var(--f-mono);color:var(--muted)}
+.rank .nm{display:flex;flex-direction:column;gap:3px;min-width:0}
+.rank .nm i{display:block;height:4px;border-radius:2px;background:var(--sunk);overflow:hidden}
+.rank .nm i b{display:block;height:100%;background:var(--line)}
+.rank.own .nm i b{background:var(--accent)}
+.rank.own .nm span{font-weight:600}
+.rank .s{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.stat{display:grid;gap:2px}
+.stat b{font:700 28px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.empty{border:1px dashed var(--line);border-radius:10px;padding:22px;text-align:center;color:var(--muted)}
+.note{font-size:13px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:8px;font-size:14px;z-index:20}
+@media (prefers-reduced-motion: no-preference){.bar i b,.rank .nm i b{transition:width .4s ease}}
+@media (max-width:520px){h2{font-size:21px}.score-big{font-size:34px}}
+</style>
+
+<header>
+  <div class="wrap">
+    <div class="top">
+      <button type="button" class="burger" id="burger" aria-expanded="false" aria-controls="menu" aria-label="Apri il menu delle sezioni">
+        <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <div class="brand">
+        <svg width="22" height="22" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11.5" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M13 3 L16 13 L13 23 L10 13 Z" fill="var(--accent)"/><circle cx="13" cy="13" r="2.4" fill="var(--ink)"/></svg>
+        <span id="cur-tab">Deck</span>
+      </div>
+      <span class="sync" id="sync">caricamento…</span>
+    </div>
+    <nav id="menu" role="tablist" aria-label="Sezioni" hidden>
+      <button role="tab" data-tab="salvati" id="t-salvati">Deck</button>
+      <button role="tab" data-tab="deck" id="t-deck">Builder</button>
+      <button role="tab" data-tab="allena" id="t-allena">Allenamento</button>
+      <button role="tab" data-tab="tornei" id="t-tornei">Tornei</button>
+      <button role="tab" data-tab="pezzi" id="t-pezzi">Pezzi</button>
+      <button role="tab" data-tab="meta" id="t-meta">Meta</button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap"><main id="main"></main></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// ---------- Meta di riferimento (BBX Weekly, 4 settimane) ----------
+// Dati di partenza: MetaBeys, classifica dell'ultimo anno letta il 23/10/2026 (apparizioni in top cut).
+const BUILTIN_META = {
+  source:"MetaBeys", unit:"count", period:"year", fetchedAt:"2026-10-23T18:30:00Z", appearances:2161,
+  blade:[["Wizard Rod",562],["Shark Scale",562],["Hover Wyvern",205],["Aero Pegasus",159],["Phoenix Wing",95],["Cobalt Dragoon",86],["Silver Wolf",81],["Pegasus Blast",70],["Meteor Dragoon",38],["Tyranno Beat",21],["Clock Mirage",20],["Emperor Blast",19],["Mummy Curse",19],["Dran Strike",17],["Glory Valkyrie",17],["Golem Rock",18],["Hells Nether",13],["Knight Mail",13],["Scorpio Spear",13],["Suppress Superion",12],["Valkyrie Blast",8],["Dran Buster",7],["Bullet Griffin",7],["Valor Bison",6],["Whale Wave",6],["Emperor Might",5],["Samurai Saber",5],["Sol Eclipse",5],["Impact Drake",4],["Orochi Cluster",4],["Red Hulk",4],["Bahamut Blitz",4],["Blast",3],["Ghost Circle",2],["Ragna Rage",2],["Ring Aether",2],["Unicorn Sting",2],["Weiss Tiger",2],["Wizard Arc",2]],
+  ratchet:[["1-60",632],["9-60",494],["3-60",303],["1-70",226],["7-60",171],["5-60",68],["1-50",55],["7-70",30],["9-70",28],["1-80",17],["4-55",17],["4-50",16],["6-60",15],["3-70",14],["0-60",5],["7-55",4],["9-80",4],["5-50",3],["5-70",3],["6-70",2],["7-80",2],["8-70",2],["4-60",1],["6-80",1],["8-60",1],["9-90",1],["M-85",1]],
+  bit:[["Hexa",464],["Low Rush",392],["Rush",329],["Kick",238],["Level",135],["Free Ball",127],["Elevate",89],["Low Orb",76],["Wedge",40],["Ball",48],["Jolt",48],["Rubber Accel",43],["Narrow",35],["Point",20],["Taper",19],["Under Needle",9],["Unite",9],["Jaggy",6],["Free Flat",5],["Low Flat",5],["Cyclone",3],["Gear Rush",2],["High Taper",2],["Low Point",2],["Wall Ball",2],["Zap",2],["Orb",1],["Needle",1]]
+};
+// Combo in top cut nell'ultimo anno (MetaBeys, almeno 3 apparizioni): lama|ratchet|punta|volte
+BUILTIN_META.combos = "Wizard Rod|1-60|Hexa|380;Shark Scale|1-70|Low Rush|100;Hover Wyvern|9-60|Kick|68;Shark Scale|3-60|Low Rush|60;Shark Scale|3-60|Rush|51;Cobalt Dragoon|9-60|Elevate|35;Silver Wolf|9-60|Free Ball|35;Cobalt Dragoon|5-60|Elevate|28;Aero Pegasus|7-60|Rush|26;Hover Wyvern|9-60|Rush|24;Wizard Rod|9-60|Ball|22;Wizard Rod|1-60|Low Orb|21;Phoenix Wing|9-60|Rush|20;Shark Scale|3-60|Level|18;Wizard Rod|1-60|Low Rush|18;Wizard Rod|1-60|Free Ball|18;Shark Scale|7-60|Rush|17;Shark Scale|1-60|Low Rush|15;Wizard Rod|9-60|Free Ball|15;Shark Scale|3-60|Kick|14;Hover Wyvern|1-60|Rush|14;Meteor Dragoon|7-60|Level|14;Hover Wyvern|9-60|Low Rush|13;Shark Scale|1-70|Rush|13;Shark Scale|3-60|Free Ball|13;Phoenix Wing|3-60|Rush|12;Silver Wolf|9-60|Low Orb|12;Aero Pegasus|3-60|Rush|12;Shark Scale|1-60|Rush|12;Aero Pegasus|1-60|Rush|12;Shark Scale|7-60|Low Rush|11;Aero Pegasus|1-70|Kick|11;Shark Scale|3-60|Narrow|11;Shark Scale|1-70|Level|10;Hover Wyvern|9-60|Jolt|10;Aero Pegasus|1-70|Low Rush|10;Shark Scale|1-50|Low Rush|10;Meteor Dragoon|9-60|Elevate|10;Shark Scale|9-60|Low Rush|9;Shark Scale|1-70|Kick|9;Aero Pegasus|7-60|Low Rush|9;Phoenix Wing|1-60|Low Rush|8;Shark Scale|1-60|Hexa|8;Shark Scale|3-60|Low Orb|8;Pegasus Blast|9-60|Low Rush|8;Shark Scale|9-60|Narrow|8;Wizard Rod|9-60|Narrow|8;Hover Wyvern|3-60|Rush|7;Wizard Rod|9-60|Hexa|7;Shark Scale|1-70|Free Ball|7;Shark Scale|9-60|Free Ball|7;Shark Scale|9-60|Wedge|7;Shark Scale|7-60|Rubber Accel|7;Shark Scale|3-60|Jolt|7;Meteor Dragoon|7-70|Level|7;Glory Valkyrie|-|Kick|7;Shark Scale|9-60|Rush|6;Pegasus Blast|3-60|Low Rush|6;Aero Pegasus|9-60|Rush|6;Pegasus Blast|9-60|Kick|6;Hover Wyvern|1-60|Low Rush|6;Phoenix Wing|3-60|Low Rush|6;Aero Pegasus|7-60|Level|6;Aero Pegasus|1-60|Kick|6;Silver Wolf|9-60|Ball|6;Shark Scale|9-60|Low Orb|6;Aero Pegasus|1-80|Rush|6;Bullet Griffin|-|Jolt|6;Pegasus Blast|4-50|Low Rush|5;Hover Wyvern|1-60|Kick|5;Tyranno Beat|1-70|Low Rush|5;Hover Wyvern|7-60|Kick|5;Clock Mirage|4-55|Low Orb|5;Hover Wyvern|9-60|Level|5;Aero Pegasus|9-60|Kick|5;Phoenix Wing|1-60|Rush|5;Wizard Rod|1-60|Rush|5;Shark Scale|9-70|Low Rush|5;Cobalt Dragoon|7-60|Level|5;Aero Pegasus|1-50|Rush|5;Shark Scale|1-50|Rush|5;Glory Valkyrie|-|Rush|5;Shark Scale|3-60|Ball|4;Wizard Rod|9-60|Wedge|4;Silver Wolf|9-70|Free Ball|4;Shark Scale|1-60|Kick|4;Aero Pegasus|1-70|Rush|4;Shark Scale|7-70|Low Rush|4;Hover Wyvern|3-60|Low Rush|4;Phoenix Wing|9-60|Wedge|4;Shark Scale|7-70|Kick|4;Hover Wyvern|9-60|Taper|4;Phoenix Wing|1-70|Kick|4;Aero Pegasus|7-60|Kick|4;Clock Mirage|4-55|Free Ball|4;Wizard Rod|7-60|Hexa|4;Wizard Rod|1-60|Ball|4;Wizard Rod|9-60|Low Orb|4;Golem Rock|9-60|Wedge|4;Mummy Curse|9-60|Wedge|4;Aero Pegasus|3-60|Kick|4;Hover Wyvern|1-60|Jolt|4;Shark Scale|1-70|Rubber Accel|4;Wizard Rod|1-60|Jolt|4;Bullet Griffin|-|Point|4;Dran Strike|3-60|Level|4;Shark Scale|4-50|Level|3;Wizard Rod|1-70|Hexa|3;Shark Scale|1-80|Kick|3;Wizard Rod|9-60|Kick|3;Hover Wyvern|3-60|Kick|3;Wizard Rod|1-60|Kick|3;Clock Mirage|4-55|Under Needle|3;Hover Wyvern|9-60|Rubber Accel|3;Wizard Rod|9-70|Free Ball|3;Tyranno Beat|1-70|Rush|3;Wizard Rod|1-60|Level|3;Pegasus Blast|9-60|Rush|3;Shark Scale|3-70|Hexa|3;Silver Wolf|1-70|Hexa|3;Aero Pegasus|3-60|Level|3;Wizard Rod|3-60|Hexa|3;Wizard Rod|6-60|Hexa|3;Shark Scale|1-70|Low Orb|3;Wizard Rod|0-60|Hexa|3;Mummy Curse|1-60|Hexa|3;Mummy Curse|1-60|Low Orb|3;Silver Wolf|1-60|Hexa|3;Shark Scale|3-70|Low Rush|3;Clock Mirage|7-55|Low Orb|3;Valkyrie Blast|9-60|Rush|3;Phoenix Wing|5-60|Rush|3;Emperor Blast|9-60|Level|3;Phoenix Wing|1-70|Low Rush|3;Scorpio Spear|9-60|Elevate|3;Phoenix Wing|1-50|Rush|3;Cobalt Dragoon|1-50|Elevate|3;Valor Bison|-|Low Rush|3;Glory Valkyrie|-|Free Flat|3;Wizard Rod|1-60|Narrow|3;Hells Nether|-|Kick|3;Hells Nether|-|Rush|3".split(";").map(x=>{const a=x.split("|"); return [a[0],a[1],a[2],+a[3]]});
+const KINDS = ["attacco","difesa","resistenza","equilibrio"];
+const TYPE_LABEL = {blade:"Lama", ratchet:"Ratchet", bit:"Punta"};
+const PERIOD_LABEL = {year:"ultimo anno", month:"ultimo mese", week:"ultima settimana", all:"tutto lo storico"};
+const fallback = () => meta().unit==="count" ? 5 : 18; // indice dei pezzi assenti dalla classifica
+const normKey = s => String(s||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+// Errori di battitura frequenti nei dati della community
+const TYPO = {supresssuperion:"suppresssuperion", aeropegaus:"aeropegasus", weedge:"wedge", points:"point", bulletgryphon:"bulletgriffin", bahamablitz:"bahamutblitz", rockgolem:"golemrock", freeball:"freeball"};
+// Nomi Hasbro o italiani → nome usato nelle classifiche
+const ALIAS = {gloryvalkirion:"Glory Valkyrie", gloryvalkerion:"Glory Valkyrie", soarphoenix:"Phoenix Wing", wyvernhover:"Hover Wyvern", hoverwyvern:"Hover Wyvern", circleghost:"Ghost Circle", wizardwand:"Wizard Rod", wandwizard:"Wizard Rod"};
+
+// ---------- Stato ----------
+let S = emptyState();
+let loaded = false, readOnly = false;
+let tab = "salvati";
+let metaMsg = "", chMsg = "", chList = null;
+let aiBusy = false, aiResult = null, aiError = "";
+let form = null; // bozza del modulo torneo: {mode:"new"|"edit"|"import", ...}
+
+function emptyState(){ return {v:1, parts:[], results:[], decks:[], meta:null, live:null, settings:{bitTypeLimit:false, personalWeight:50, challonge:"", slots:[{},{},{}]}} }
+function normState(x){
+  const s = Object.assign(emptyState(), x||{});
+  s.settings = Object.assign(emptyState().settings, s.settings||{});
+  s.parts = Array.isArray(s.parts)?s.parts:[]; s.results = Array.isArray(s.results)?s.results:[]; s.decks = Array.isArray(s.decks)?s.decks:[]; s.trainLog = Array.isArray(s.trainLog)?s.trainLog:[];
+  if(!Array.isArray(s.settings.slots) || s.settings.slots.length!==3){ const lb=s.settings.lockBlades||[]; s.settings.slots=[0,1,2].map(i=>lb[i]?{blade:lb[i]}:{}) }
+  delete s.settings.lockBlades;
+  return s;
+}
+const uid = () => Math.random().toString(36).slice(2,10);
+const esc = v => String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const meta = () => S.meta || BUILTIN_META;
+
+// ---------- Salvataggio ----------
+let db=null, docRef=null, timer=null, writing=false, again=false, dirtyAt=0;
+const LS_KEY = "decklab-bbx-state";
+function lsGet(){ try{ const t=localStorage.getItem(LS_KEY); return t?JSON.parse(t):null }catch(e){ return null } }
+function lsSet(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(S)) }catch(e){} }
+function setSync(t){ document.getElementById("sync").textContent=t }
+
+// ---------- Salvataggio con unione delle modifiche ----------
+// Ogni pezzo, torneo e deck porta la data della sua ultima modifica (u): quando due copie si incontrano vince, voce per voce, la più recente.
+let synced=null;
+const LISTS=["parts","results","decks","trainLog"], SINGLES=["settings","meta","live","train"];
+function snapshotMap(st){ const m=new Map(); for(const k of LISTS) (st[k]||[]).forEach(x=>m.set(k+":"+x.id, JSON.stringify({...x,u:undefined}))); for(const k of SINGLES) m.set(k, JSON.stringify(st[k]??null)); return m }
+function stamp(){
+  const now=Date.now(), cur=snapshotMap(S); S.uts=S.uts||{}; S.del=S.del||{};
+  if(synced){
+    // una modifica fatta qui vale sempre più della versione da cui parte, anche se l'orologio è indietro
+    for(const k of LISTS) (S[k]||[]).forEach(x=>{ const key=k+":"+x.id; if(synced.get(key)!==cur.get(key)) x.u=Math.max(now,(+x.u||0)+1) });
+    for(const k of SINGLES) if(synced.get(k)!==cur.get(k)) S.uts[k]=Math.max(now,(+S.uts[k]||0)+1);
+    for(const key of synced.keys()) if(key.includes(":") && !cur.has(key)) S.del[key]=now;
+  }
+  synced=cur;
+}
+function mergeStates(a,b){ // a = copia online, b = copia di questa pagina
+  a=a||{}; const del={...(a.del||{})}; for(const [k,v] of Object.entries(b.del||{})) del[k]=Math.max(del[k]||0,v);
+  const out={...b};
+  for(const k of LISTS){
+    const m=new Map(), order=[];
+    for(const x of (b[k]||[])){ m.set(x.id,x); order.push(x.id) }
+    for(const x of (a[k]||[])){ const y=m.get(x.id); if(!y){ m.set(x.id,x); order.push(x.id) } else if((+x.u||0)>(+y.u||0)) m.set(x.id,x) }
+    out[k]=order.map(id=>m.get(id)).filter(x=>!((del[k+":"+x.id]||0)>=(+x.u||0) && del[k+":"+x.id]));
+  }
+  const ua=a.uts||{}, ub=b.uts||{}; out.uts={};
+  for(const k of SINGLES){ if((+ua[k]||0)>(+ub[k]||0)){ out[k]=a[k]; out.uts[k]=ua[k] } else { out[k]=b[k]; out.uts[k]=+ub[k]||0 } }
+  const cut=Date.now()-60*864e5; out.del={}; for(const [k,v] of Object.entries(del)) if(v>cut) out.del[k]=v;
+  return normState(JSON.parse(JSON.stringify(out)));
+}
+function save(){
+  stamp(); lsSet(); dirtyAt = Date.now();
+  if(!docRef || readOnly){ setSync(docRef?"sola lettura":"salvato su questo dispositivo"); return }
+  setSync("modifiche in attesa…");
+  clearTimeout(timer); timer=setTimeout(flush, 900);
+}
+async function flush(){
+  if(writing){ again=true; return }
+  writing=true;
+  try{
+    // prima di scrivere unisco quello che c'è online, così non cancello modifiche fatte altrove
+    try{ const sn=await docRef.get(); if(sn.exists){ S=mergeStates(JSON.parse(JSON.stringify(sn.data().state)), S); synced=snapshotMap(S) } }catch(e){}
+    await docRef.set({state:JSON.parse(JSON.stringify(S)), savedAt:new Date().toISOString()}); lsSet(); setSync("salvato");
+  }catch(e){
+    if(e && e.code==="invalid_argument"){ readOnly=true; setSync("sola lettura") }
+    else if(e && e.code==="quota_exceeded"){ setSync("spazio esaurito") }
+    else setSync("salvataggio non riuscito, riprovo alla prossima modifica");
+  }
+  writing=false;
+  if(again){ again=false; flush() }
+}
+async function boot(){
+  const hash = (location.hash||"").slice(1);
+  if(["salvati","deck","allena","tornei","pezzi","meta"].includes(hash)) tab=hash;
+  const local = lsGet(); if(local){ S=normState(local); loaded=true }
+  synced=snapshotMap(S);
+  render();
+  if(!window.claude || !window.claude.use){ setSync(STANDALONE?"salvato sul telefono":(local?"salvato su questo dispositivo":"solo su questo dispositivo")); loaded=true; render(); autoMetaNative(); return }
+  try{ db = await window.claude.use("db") }catch(e){ db=null }
+  if(!db){ setSync("solo su questo dispositivo"); loaded=true; render(); return }
+  docRef = db.doc("app/state");
+  docRef.onSnapshot(snap=>{
+    if(snap.metadata && snap.metadata.hasPendingWrites) return;
+    if(snap.exists){
+      // i dati arrivano congelati: ne faccio una copia modificabile e la unisco alla mia
+      const inc = JSON.parse(JSON.stringify(snap.data().state));
+      const merged = mergeStates(inc, S);
+      const changed = JSON.stringify(merged)!==JSON.stringify(S), ahead = JSON.stringify(merged)!==JSON.stringify(normState(inc));
+      S = merged; synced=snapshotMap(S); lsSet(); setSync("sincronizzato");
+      if(autoIntegrated()) save(); else if(ahead && !readOnly && !writing) flush();
+      loaded=true;
+      // non ridisegno mentre si sta scrivendo in un campo, per non perdere quello che si digita
+      const a=document.activeElement; if(changed && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.type!=="checkbox")) render(); else if(!changed) {} 
+      return;
+    }
+    setSync("archivio vuoto"); loaded=true; render();
+  }, err=>{ setSync("sincronizzazione interrotta"); loaded=true; render() });
+}
+
+
+// ---------- Calcoli ----------
+function metaMap(cat){
+  const M = meta(); const list = M[cat]||[]; const max = Math.max(1,...list.map(x=>x[1]));
+  const m = new Map(); list.forEach(([n,s],i)=>{ const k=normKey(n); if(!m.has(k)) m.set(k,{score: M.unit==="count" ? Math.sqrt(s/max)*100 : s/max*100, raw:s, rank:i+1}) }); return m;
+}
+function matchName(p){
+  const list = meta()[p.type]||[]; const keys = new Map(list.map(([n])=>[normKey(n),n]));
+  for(const c of [p.metaName, p.name, ALIAS[normKey(p.name)], ALIAS[normKey(p.metaName)]]){
+    if(!c) continue; let k=normKey(c); k=TYPO[k]||k; if(keys.has(k)) return keys.get(k);
+  }
+  return "";
+}
+function rematchAll(){ S.parts.forEach(p=>{ p.metaName = matchName(p) }); autoIntegrated() }
+// Un torneo può avere più fasi (cambi di deck): ognuna con le sue 3 combo e il suo bilancio
+function phasesOf(r){
+  if(Array.isArray(r.phases) && r.phases.length) return r.phases;
+  let w=+r.wins||0, l=+r.losses||0;
+  if(Array.isArray(r.matches) && r.matches.length){ w=r.matches.filter(m=>m.won).length; l=r.matches.length-w }
+  return [{label:"Tutto il torneo", combos:r.combos||[], wins:w, losses:l}];
+}
+const totWL = r => phasesOf(r).reduce((a,p)=>[a[0]+(+p.wins||0), a[1]+(+p.losses||0)],[0,0]);
+// Il valore salvato per una punta è la sigla (es. LR): lo riporto al nome del pezzo
+function partNameFor(type,v){ if(!v) return ""; let p=S.parts.find(x=>x.type===type && (x.name===v || (type==="bit" && x.code===v)));
+  if(!p){ const k=canon(ALIAS[normKey(v)]||v); p=S.parts.find(x=>x.type===type && x.metaName && canon(x.metaName)===k) }
+  return p?p.name:v }
+function addComboStat(st,c,w,l){
+  if(!c||!c.blade) return;
+  const names={blade:partNameFor("blade",c.blade), ratchet:partNameFor("ratchet",c.ratchet), bit:partNameFor("bit",c.bit)};
+  for(const t of ["blade","ratchet","bit"]){ const n=names[t]; if(!n) continue; const k=t+":"+n; const o=st.get(k)||{w:0,l:0}; o.w+=w; o.l+=l; st.set(k,o) }
+  const ck="combo:"+[c.blade,c.ratchet||"",c.bit||""].join("|"); const o=st.get(ck)||{w:0,l:0}; o.w+=w; o.l+=l; st.set(ck,o);
+}
+// withTraining: aggiunge gli scontri di allenamento, pesati per arena (per l'indice del Builder)
+function personalStats(withTraining){
+  const st = new Map();
+  for(const r of S.results){
+    for(const ph of phasesOf(r)){
+      const bt=(ph.matches||[]).flatMap(m=>m.battles||[]).filter(b=>b.side!=="draw");
+      if(bt.length){ bt.forEach(b=>{ const w=b.side==="me"?1:0; addComboStat(st,(ph.combos||[])[b.bey],w,1-w) }); continue }
+      const w=+ph.wins||0, l=+ph.losses||0; if(!w && !l) continue;
+      for(const c of (ph.combos||[])) addComboStat(st,c,w,l);
+    }
+  }
+  if(withTraining) for(const e of (S.trainLog||[])){
+    if(e.side==="draw") continue;
+    const mvm=!!(e.b && e.b.mine!==false);
+    const ka=trainWeight(e.arena,e.a,mvm); addComboStat(st,e.a, e.side==="a"?ka:0, e.side==="a"?0:ka);
+    if(e.b && e.b.mine!==false){ const kb=trainWeight(e.arena,e.b,true); addComboStat(st,e.b, e.side==="b"?kb:0, e.side==="b"?0:kb) }
+  }
+  return st;
+}
+// Abbinamenti del meta: per ogni lama, con quali punte e ratchet arriva in top cut
+const canon = s => { const x=normKey(s); return TYPO[x]||x };
+function comboIndex(){
+  const idx=new Map();
+  for(const row of (meta().combos||[])){
+    const [b,r,t,n]=row; const kb=canon(b), kr=canon(r), kt=canon(t); if(!kb||!kt) continue;
+    let o=idx.get(kb); if(!o){ o={tot:0, bit:new Map(), rat:new Map(), exact:new Map(), bitName:new Map(), ratName:new Map()}; idx.set(kb,o) }
+    o.tot+=n; o.bit.set(kt,(o.bit.get(kt)||0)+n); o.bitName.set(kt,o.bitName.get(kt)||t);
+    if(kr){ o.rat.set(kr,(o.rat.get(kr)||0)+n); o.ratName.set(kr,o.ratName.get(kr)||r) }
+    o.exact.set(kr+"|"+kt,(o.exact.get(kr+"|"+kt)||0)+n);
+  }
+  return idx;
+}
+const topOf = m => [...m.entries()].sort((a,b)=>b[1]-a[1])[0];
+function ownsCanon(type,k){ return S.parts.some(p=>p.type===type && (+p.qty||0)>0 && (canon(p.metaName)===k || canon(p.name)===k)) }
+function scorer(){
+  const maps = {blade:metaMap("blade"), ratchet:metaMap("ratchet"), bit:metaMap("bit")};
+  const st = personalStats(true); const pw = (+S.settings.personalWeight||0)/100;
+  return p => {
+    const hit = p.metaName ? maps[p.type].get(normKey(p.metaName)) : null;
+    const m = hit ? hit.score : fallback();
+    const s = st.get(p.type+":"+p.name); let pers=null, w=0;
+    if(s && (s.w+s.l)>0){ const g=s.w+s.l; pers=(s.w+1)/(g+2)*100; w=pw*g/(g+4) }
+    return {meta:m, metaRank:hit?hit.rank:null, pers, games:s?Math.round(s.w+s.l):0, total: pers==null?m:m*(1-w)+pers*w};
+  };
+}
+function comboScore(b,r,t,sc,ci){
+  const sb=sc(b).total, sr=r.id==="int"?55:sc(r).total, st=sc(t).total;
+  let syn=0, pair=null; const why=[];
+  const info = ci && b.metaName ? ci.get(canon(b.metaName)) : null;
+  if(info && info.tot>=8){
+    // Abbastanza dati: conta come il meta usa davvero questa lama
+    const kt=canon(t.metaName||t.name), kr=canon(r.metaName||r.name);
+    const bs=(info.bit.get(kt)||0)/info.tot;
+    const rTot=[...info.rat.values()].reduce((a,x)=>a+x,0);
+    const rs=rTot>=8 ? (info.rat.get(kr)||0)/rTot : null;
+    const ex=info.exact.get(kr+"|"+kt)||0;
+    syn += 18*Math.sqrt(bs) + (rs==null?4:8*Math.sqrt(rs)) + (ex>=3?5:0) - (bs===0?10:0);
+    const [tb,tn]=topOf(info.bit);
+    pair={share:bs, topBit:info.bitName.get(tb), topShare:tn/info.tot, topOwned:ownsCanon("bit",tb)};
+    if(bs===0) why.push(`nel meta ${b.metaName} non arriva mai in top cut con ${t.metaName||t.name}: nel ${Math.round(pair.topShare*100)}% dei casi usa ${pair.topBit}`);
+    else why.push(`${t.metaName||t.name} è la punta del ${Math.round(bs*100)}% dei suoi deck in top cut`);
+    if(rs===0) why.push(`${r.name} non compare mai con questa lama`);
+    if(ex>=3) why.push(`combo identica a una del meta (${ex} volte)`);
+  } else {
+    // Pochi dati sugli abbinamenti: uso il tipo di lama e punta
+    syn += 6;
+    if(b.kind && t.kind && b.kind===t.kind){ syn+=4; why.push("lama e punta dello stesso tipo") }
+    if(b.kind==="attacco" && t.kind==="resistenza"){ syn-=5; why.push("punta lenta su lama d'attacco") }
+    if(b.kind==="resistenza" && t.kind==="attacco"){ syn-=5; why.push("punta aggressiva su lama da resistenza") }
+    why.push("pochi dati sugli abbinamenti di questa lama");
+  }
+  if(r.note && /balla|lento|rotto/i.test(r.note)){ syn-=4; why.push("ratchet segnato come difettoso") }
+  syn=Math.round(syn);
+  return {score: .45*sb+.25*sr+.30*st+syn, sb, sr, st, syn, why, pair};
+}
+function eligible(type){
+  const seen=new Set();
+  return S.parts.filter(p=>p.type===type && !p.avoid && (+p.qty||0)>0).filter(p=>{const k=p.name.toLowerCase(); if(seen.has(k)) return false; seen.add(k); return true});
+}
+// Segnaposto per le lame con ratchet integrato
+const INTEGRATED = {id:"int", type:"ratchet", name:"ratchet integrato", metaName:"-", note:""};
+// Lame che nel meta compaiono (quasi) sempre senza ratchet: le segno come integrate, finché l'utente non decide diversamente
+function autoIntegrated(){
+  const idx=comboIndex(); let changed=false;
+  for(const p of S.parts){
+    if(p.type!=="blade" || p.integrated!==undefined || !p.metaName) continue;
+    const info=idx.get(canon(p.metaName)); if(!info || info.tot<5) continue;
+    const withR=[...info.rat.values()].reduce((a,x)=>a+x,0);
+    p.integrated = withR/info.tot < 0.2; changed=true;
+  }
+  return changed;
+}
+// Pezzi fissati a mano nelle tre trottole: [{blade, ratchet, bit}] con gli id dei pezzi
+function slotsOf(){ const s=S.settings.slots; return Array.isArray(s)&&s.length===3 ? s : [{},{},{}] }
+const anyPinned = () => slotsOf().some(x=>x&&(x.blade||x.ratchet||x.bit));
+function buildDecks(){
+  const B=eligible("blade"), R=eligible("ratchet"), T=eligible("bit");
+  if(B.length<3||T.length<3) return {error:{B:B.length,R:R.length,T:T.length}};
+  const sc=scorer(), ci=comboIndex();
+  // Tutte le combo possibili lama + ratchet + punta, con il loro punteggio
+  const C=[];
+  B.forEach((b,bi)=>{ const rs=b.integrated?[-1]:R.map((_,i)=>i);
+    rs.forEach(ri=>T.forEach((t,ti)=>{ C.push({bi,ri,ti,s:comboScore(b,ri<0?INTEGRATED:R[ri],t,sc,ci).score}) })) });
+  const slots=slotsOf().map(x=>({b:B.findIndex(p=>p.id===(x&&x.blade)), r:R.findIndex(p=>p.id===(x&&x.ratchet)), t:T.findIndex(p=>p.id===(x&&x.bit))}));
+  const pinned=slots.map(x=>x.b>=0||x.r>=0||x.t>=0);
+  const cand=slots.map(x=>C.map((c,i)=>i).filter(i=>{const c=C[i]; return (x.b<0||c.bi===x.b)&&(x.r<0||c.ri===x.r)&&(x.t<0||c.ti===x.t)}).sort((a,b)=>C[b].s-C[a].s));
+  const best=cand.map(l=>l.length?C[l[0]].s:-Infinity);
+  const lim=!!S.settings.bitTypeLimit;
+  const top=[]; const KEEP=400; let minTop=-Infinity;
+  const push=(s,a)=>{ if(top.length>=KEEP && s<=minTop) return; top.push({s,a}); if(top.length>KEEP*1.5){ top.sort((x,y)=>y.s-x.s); top.length=KEEP; minTop=top[KEEP-1].s } };
+  const pick=[0,0,0];
+  function rec(k, sum, lastFree, uB, uR, uT){
+    if(k===3){
+      if(lim){ const ks=pick.map(i=>T[C[i].ti].kind).filter(Boolean); if(new Set(ks).size<ks.length) return }
+      push(sum/3, pick.slice()); return;
+    }
+    let bound=0; for(let j=k+1;j<3;j++) bound+=best[j];
+    for(const i of cand[k]){
+      const c=C[i];
+      if(top.length>=KEEP && (sum+c.s+bound)/3<=minTop) break; // le candidate sono in ordine decrescente
+      if(!pinned[k] && i<=lastFree) continue;                  // evita di contare due volte lo stesso deck
+      if(uB.has(c.bi) || uT.has(c.ti) || (c.ri>=0 && uR.has(c.ri))) continue;
+      pick[k]=i; uB.add(c.bi); uT.add(c.ti); if(c.ri>=0) uR.add(c.ri);
+      rec(k+1, sum+c.s, pinned[k]?lastFree:i, uB, uR, uT);
+      uB.delete(c.bi); uT.delete(c.ti); if(c.ri>=0) uR.delete(c.ri);
+    }
+  }
+  rec(0,0,-1,new Set(),new Set(),new Set());
+  top.sort((x,y)=>y.s-x.s);
+  const toDeck = t => {
+    const combos=t.a.map(i=>{ const c=C[i]; const b=B[c.bi], r=c.ri<0?INTEGRATED:R[c.ri], tt=T[c.ti]; return {b,r,t:tt,...comboScore(b,r,tt,sc,ci)} });
+    // Le trottole libere vanno in ordine di punteggio, quelle fissate restano al loro posto
+    const free=combos.map((c,i)=>i).filter(i=>!pinned[i]); const fs=free.map(i=>combos[i]).sort((x,y)=>y.score-x.score); free.forEach((i,j)=>combos[i]=fs[j]);
+    return {score:t.s, combos};
+  };
+  const picked=[]; const keyset=d=>new Set(d.combos.flatMap(c=>[c.b.id,c.r.id+"@"+c.b.id,c.t.id]));
+  for(const t of top){ const d=toDeck(t); const ks=keyset(d);
+    if(picked.every(p=>{ let same=0; ks.forEach(k=>{ if(p.ks.has(k)) same++ }); return same<=7 })){ picked.push({d,ks}); if(picked.length===12) break } }
+  if(!picked.length) return {error: lim ? {rule:true} : anyPinned() ? {lock:true} : {R:R.length,B:B.length,T:T.length}};
+  return {decks:picked.map(p=>p.d), sc, B, R, T};
+}
+
+// ---------- Rendering ----------
+function render(){
+  document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-selected", String(b.dataset.tab===tab)));
+  const ct=document.getElementById("cur-tab"); const cb=document.querySelector(`nav button[data-tab="${tab}"]`); if(ct&&cb) ct.textContent=cb.textContent;
+  const m=document.getElementById("main");
+  if(!loaded){ m.innerHTML='<div class="empty">Carico i tuoi dati…</div>'; return }
+  if(document.getElementById("res-form")) syncFormTop();
+  m.innerHTML = tab==="salvati"?vSavedTab():tab==="allena"?vTrain():tab==="deck"?vDeck():tab==="pezzi"?vParts():tab==="tornei"?vResults():vMeta();
+  syncChecks(); setTimeout(syncChecks,0); setTimeout(syncChecks,120);
+}
+// Le caselle prendono sempre lo stato dai dati, anche se il browser prova a ripristinarne uno vecchio
+function syncChecks(){
+  document.querySelectorAll('input[type="checkbox"][data-f][data-id]').forEach(el=>{ const p=S.parts.find(x=>x.id===el.dataset.id); if(p) el.checked=!!p[el.dataset.f] });
+  const rb=document.getElementById("rule-bit"); if(rb) rb.checked=!!S.settings.bitTypeLimit;
+}
+function barRow(lbl,v){ return `<div class="bar"><span>${lbl}</span><i><b style="width:${Math.max(0,Math.min(100,v)).toFixed(0)}%"></b></i><span>${v.toFixed(0)}</span></div>` }
+const tourName = p => p.metaName && p.metaName!=="-" && normKey(p.metaName)!==normKey(p.name) ? p.metaName : "";
+const bitLabel = t => t.code ? `${t.code} · ${t.name}` : t.name;
+let viewIdx = 0;
+
+function vDeck(){
+  const res = buildDecks();
+  const st=S.settings;
+  let body="";
+  if(!S.parts.length){
+    body=`<div class="empty">La collezione è vuota. Aggiungi lame, ratchet e punte nella scheda <b>Pezzi</b> e qui comparirà il deck migliore.</div>`;
+  } else if(res.error){
+    body = res.error.rule
+      ? `<div class="empty">Con la regola “una punta per tipo” non esiste un deck valido${anyPinned()?" con i pezzi che hai fissato":""}. Disattivala, sblocca qualche pezzo o assegna tipi diversi alle punte.</div>`
+      : res.error.lock
+      ? `<div class="empty">Con i pezzi che hai fissato non esiste un deck valido. <button class="btn" data-act="unpin-all">Sblocca tutto</button></div>`
+      : `<div class="empty">Servono almeno 3 lame, 3 punte e un ratchet per ogni lama senza ratchet integrato. Ora hai ${res.error.B} lame, ${res.error.R} ratchet, ${res.error.T} punte utilizzabili.</div>`;
+  } else {
+    if(viewIdx>=res.decks.length) viewIdx=0;
+    const cur=res.decks[viewIdx];
+    const missing=[]; const seen=new Set();
+    cur.combos.forEach(c=>{ const p=c.pair; if(p && !p.topOwned && p.share<0.5 && !seen.has(p.topBit)){ seen.add(p.topBit); missing.push(`${p.topBit}: ${tourName(c.b)||c.b.name} la usa nel ${Math.round(p.topShare*100)}% dei deck in top cut`) } });
+    const others=res.decks.map((d,i)=>({d,i})).filter(x=>x.i!==viewIdx);
+    body = `
+    <section class="panel">
+      <div class="deck-head">
+        <div class="stack" style="gap:4px"><h3>${viewIdx===0?"Deck consigliato":"Proposta "+(viewIdx+1)}</h3><p class="muted small">Cambia un pezzo dai menu: resta fissato e il resto del deck si ricalcola.</p></div>
+        <div class="row"><span class="score-big">${cur.score.toFixed(1)}</span><span class="muted small">punti<br>indice</span></div>
+      </div>
+      <div class="row">
+        <button class="btn" data-act="prev-deck" ${viewIdx===0?"disabled":""} aria-label="Proposta precedente">‹</button>
+        <span class="mono small">proposta ${viewIdx+1} di ${res.decks.length}</span>
+        <button class="btn" data-act="next-deck" ${viewIdx>=res.decks.length-1?"disabled":""} aria-label="Proposta successiva">›</button>
+        ${anyPinned()?`<button class="btn ghost" data-act="unpin-all">Sblocca tutti i pezzi</button>`:""}
+      </div>
+      <div class="grid3">${cur.combos.map((c,i)=>comboCard(c,i,res)).join("")}</div>
+      ${missing.length?`<div class="note"><b>Ti mancano per usare queste lame come nel meta:</b><br>${missing.map(esc).join("<br>")}</div>`:""}
+      <div class="row">
+        <button class="btn primary" data-act="use-deck" data-i="${viewIdx}">Usa nel torneo</button>
+        <button class="btn" data-act="save-deck" data-i="${viewIdx}">Salva tra i miei deck</button>
+        ${STANDALONE?"":`<button class="btn" data-act="ask-ai" ${aiBusy?"disabled":""}>${aiBusy&&!metaMsg&&!chMsg?"Claude sta ragionando…":"Chiedi un parere a Claude"}</button>`}
+      </div>
+      <p class="small muted">“Usa nel torneo” apre la scheda Tornei con questo deck già inserito. “Salva” lo mette nella sezione Deck, da richiamare quando registri un torneo.</p>
+      ${STANDALONE?"":aiView()+chatView()}
+    </section>
+    ${others.length?`<section class="panel">${foldHead("others","Altre proposte",others.length)}${fold.others?"":`<div>${others.map(({d,i})=>`
+      <div class="alt"><div class="stack" style="gap:4px">${d.combos.map(c=>`<span><b>${esc(c.b.name)}</b> <span class="mono">${esc(c.r.id==="int"?"integrato":c.r.name)} ${esc(c.t.code||c.t.name)}</span></span>`).join("")}</div>
+      <div class="row"><span class="mono">${d.score.toFixed(1)}</span><button class="btn" data-act="show-deck" data-i="${i}">Mostra</button></div></div>`).join("")}</div>`}</section>`:""}`;
+    window.__decks = res.decks;
+  }
+  return `
+  <section class="panel">
+    <h2>Costruisci il deck</h2>
+    <p class="muted">L'indice combina tre cose: quanto spesso ogni pezzo arriva in top cut, se la lama viene usata davvero con quella punta e quel ratchet nei deck del meta, e i tuoi risultati registrati, tornei e allenamenti.</p>
+    <div class="grid2">
+      <label class="chk"><input type="checkbox" id="rule-bit" ${st.bitTypeLimit?"checked":""}> Regola local: massimo una punta per tipo</label>
+      <label class="f">Peso dei tuoi risultati: <span class="mono" id="pw-val">${st.personalWeight}%</span>
+        <input type="range" id="pw" min="0" max="100" step="10" value="${st.personalWeight}"></label>
+    </div>
+    <p class="note">Formato: 3 trottole con pezzi unici, gironi a 4 punti, eliminazione diretta a 7. Ratchet “4-60” = 4 denti, altezza 6,0 mm.</p>
+  </section>
+  ${body}`;
+}
+function comboCard(c,i,res){
+  const pin=slotsOf()[i]||{};
+  const sel=(type,list,curId)=>`<select data-slot="${i}" data-stype="${type}" aria-label="${TYPE_LABEL[type]} trottola ${i+1}">${list.map(p=>`<option value="${p.id}" ${p.id===curId?"selected":""}>${esc(type==="bit"?bitLabel(p):p.name)}</option>`).join("")}</select>`;
+  const pinChip=type=>pin[type]?`<button class="chip acc" type="button" data-act="unpin" data-slot="${i}" data-stype="${type}" title="Sblocca">fissato ✕</button>`:"";
+  const tn=tourName(c.b);
+  return `<div class="combo">
+    <span class="slot">TROTTOLA ${i+1}${c.b.left?" · ROTAZIONE SX":""}</span>
+    <div class="stack" style="gap:6px">
+      <div class="row" style="gap:6px">${sel("blade",res.B,c.b.id)}${pinChip("blade")}</div>
+      ${tn?`<span class="small muted">nei tornei: ${esc(tn)}</span>`:""}
+      <div class="row" style="gap:6px">${c.r.id==="int"?`<span class="chip">ratchet integrato</span>`:sel("ratchet",res.R,c.r.id)+pinChip("ratchet")}</div>
+      <div class="row" style="gap:6px">${sel("bit",res.T,c.t.id)}${pinChip("bit")}</div>
+    </div>
+    <div class="bars">${barRow("lama",c.sb)}${c.r.id==="int"?"":barRow("ratchet",c.sr)}${barRow("punta",c.st)}</div>
+    <div class="row">${c.b.kind?`<span class="chip">${esc(c.b.kind)}</span>`:""}${c.pair?(c.pair.share>=0.15?`<span class="chip good">abbinamento da meta</span>`:c.pair.share===0?`<span class="chip bad">abbinamento mai visto</span>`:`<span class="chip warn">abbinamento raro</span>`):""}</div>
+    ${c.why.length?`<p class="small muted">${esc(c.why.join(". "))}.</p>`:""}
+  </div>`;
+}
+function aiView(){
+  if(aiError) return `<p class="note">${esc(aiError)}</p>`;
+  if(!aiResult) return "";
+  const r=aiResult; const owned=new Set(S.parts.flatMap(p=>[p.code,p.name,p.metaName].filter(Boolean).map(x=>x.toLowerCase())));
+  const chk=n=>!n||/integrat/i.test(n)||owned.has(String(n).toLowerCase())?"":` <span class="chip warn">non in collezione</span>`;
+  return `<div class="ai-out">
+    <h3>Il parere di Claude</h3>
+    ${(r.deck||[]).map((c,i)=>`<div><b>${i+1}. ${esc(c.lama)}${chk(c.lama)} <span class="mono">${esc(c.ratchet||"")}${chk(c.ratchet)} ${esc(c.punta)}${chk(c.punta)}</span></b>${c.ruolo?` <span class="chip">${esc(c.ruolo)}</span>`:""}<br><span class="muted">${esc(c.motivo||"")}</span></div>`).join("")}
+    ${r.ordine?`<p><b>Ordine:</b> ${esc(r.ordine)}</p>`:""}
+    ${(r.consigli||[]).length?`<div><b>Consigli</b><ul>${r.consigli.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
+    ${(r.acquisti||[]).length?`<div><b>Pezzi che migliorerebbero il deck</b><ul>${r.acquisti.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
+  </div>`;
+}
+// Sezioni richiudibili: lo stato resta ricordato su questo dispositivo
+let fold={saved:false, others:true};
+try{ Object.assign(fold, JSON.parse(localStorage.getItem("decklab-fold")||"{}")) }catch(e){}
+function foldHead(key,title,count){ const shut=!!fold[key]; return `<button type="button" data-act="fold" data-key="${key}" aria-expanded="${!shut}" style="all:unset;box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;width:100%;cursor:pointer"><h3>${title} <span class="chip">${count}</span></h3><span class="mono">${shut?"▾":"▴"}</span></button>` }
+// ---------- Allenamento ----------
+// S.train.cur = {a:{blade,ratchet,bit}, b:{mine, blade, ratchet, bit}, arena}; S.trainLog = [{id,t,a,b,arena,side,f,pts}]
+const ARENAS=[["torneo","Arena da torneo"],["hasbro","Arena Hasbro"]];
+// Quanto conta uno scontro di allenamento nell'indice, rispetto a uno di torneo (che vale 1)
+const TRAIN_WEIGHT={torneo:0.6, hasbro:0.2};
+// Sull'arena Hasbro le combo di difesa valgono quasi zero: lì non si comportano come in torneo
+function trainWeight(arena, c, mineVsMine){
+  return trainWeightBase(arena,c) * (mineVsMine ? 0.5 : 1); // tra due combo mie si impara meno che contro un avversario
+}
+function trainWeightBase(arena, c){
+  if(arena!=="hasbro") return TRAIN_WEIGHT[arena]||0.6;
+  const kindOf=(type,v)=>{ const p=S.parts.find(q=>q.type===type && (q.name===v || q.code===v)); return p&&p.kind };
+  return (kindOf("blade",c&&c.blade)==="difesa" || kindOf("bit",c&&c.bit)==="difesa") ? 0.03 : TRAIN_WEIGHT.hasbro;
+}
+function trainCur(){ if(!S.train||!S.train.cur) S.train={cur:{a:{}, b:{mine:true}, arena:"torneo"}}; return S.train.cur }
+const comboKey = x => [x&&x.mine===false?"o":"m", (x&&x.blade)||"?", (x&&x.ratchet)||"?", (x&&x.bit)||"?"].join("|");
+const comboLabel = (x,mine) => { if(mine===false){ const p=[x.blade,x.ratchet,x.bit].filter(Boolean); return p.length?p.join(" "):"avversario sconosciuto" } return [x.blade||"?", x.ratchet||(x.blade&&isIntegrated(x.blade)?"integrato":"?"), x.bit||"?"].join(" ") };
+function isIntegrated(blade){ const p=S.parts.find(q=>q.type==="blade"&&q.name===blade); return !!(p&&p.integrated) }
+const sameMatchup = (e,c) => comboKey({...e.a,mine:true})===comboKey({...c.a,mine:true}) && comboKey(e.b)===comboKey(c.b) && e.arena===c.arena;
+function trainTally(list){ return list.reduce((t,e)=>{ if(e.side==="a"){ t.a++; t.pa+=e.pts } else if(e.side==="b"){ t.b++; t.pb+=e.pts } else t.d++; t.f[e.side+":"+e.f]=(t.f[e.side+":"+e.f]||0)+1; return t },{a:0,b:0,d:0,pa:0,pb:0,f:{}}) }
+let trainShowAll=false;
+function vTrain(){
+  const c=trainCur(); const log=S.trainLog||[];
+  const mineSel=(side,x)=>["blade","ratchet","bit"].map(type=>{
+    const list=S.parts.filter(p=>p.type===type && (+p.qty||0)>0);
+    const v=x[type]||"";
+    if(type==="ratchet" && x.blade && isIntegrated(x.blade)) return `<span class="chip">ratchet integrato</span>`;
+    return `<select data-tr="${side}" data-cf="${type}" aria-label="${TYPE_LABEL[type]}"><option value="">${TYPE_LABEL[type]}</option>${list.map(p=>{const val=type==="bit"?(p.code||p.name):p.name; return `<option value="${esc(val)}" ${val===v?"selected":""}>${esc(type==="bit"?bitLabel(p):p.name)}${p.avoid?" (da evitare)":""}</option>`}).join("")}</select>`;
+  }).join("");
+  const oppInp=x=>["blade","ratchet","bit"].map(type=>`<input data-tr="b" data-cf="${type}" list="dl-${type}" value="${esc(x[type]||"")}" placeholder="${TYPE_LABEL[type]} (se la sai)" aria-label="${TYPE_LABEL[type]} avversaria" style="flex:1;min-width:120px">`).join("");
+  const names=type=>[...new Set([...(meta()[type]||[]).map(r=>r[0]), ...S.parts.filter(p=>p.type===type).map(p=>p.name)])];
+  const dl=["blade","ratchet","bit"].map(type=>`<datalist id="dl-${type}">${names(type).map(n=>`<option value="${esc(n)}"></option>`).join("")}</datalist>`).join("");
+  const ready=c.a.blade && (c.b.mine===false || c.b.blade);
+  const cur=log.filter(e=>sameMatchup(e,c)); const T=trainTally(cur);
+  const lab=(x,mine)=>x.blade?esc(comboLabel(x,mine)):(mine===false?"Avversario":"—");
+  const nameA=c.a.blade||"Combo A", nameB=c.b.blade||(c.b.mine===false?"Avversario":"Combo B");
+  const finBtns=side=>FINISH.map(([f,l,p])=>`<button class="btn ${side==="a"?"primary":""}" data-act="tr-pt" data-side="${side}" data-f="${f}" ${ready?"":"disabled"} style="flex:1;min-width:64px;justify-content:center;padding-block:12px">${l} +${p}</button>`).join("");
+  // tutte le sfide registrate, raggruppate
+  const groups=new Map(); log.forEach(e=>{ const k=comboKey({...e.a,mine:true})+"#"+comboKey(e.b)+"#"+e.arena; const g=groups.get(k)||{e,list:[]}; g.list.push(e); groups.set(k,g) });
+  const gl=[...groups.values()].sort((x,y)=>y.list[y.list.length-1].t-x.list[x.list.length-1].t);
+  return `${dl}<section class="panel">
+    <h2>Allenamento</h2>
+    <p class="muted">Scegli le due combo e l'arena: restano fissate finché non le cambi. Ogni scontro conta nell'indice del Builder meno di un torneo, e tra due combo tue conta la metà che contro un avversario. Sull'arena Hasbro conta poco, e quasi niente per le combo di difesa.</p>
+    <div class="row" role="radiogroup" aria-label="Arena">${ARENAS.map(([k,l])=>`<button class="btn ${c.arena===k?"primary":""}" data-act="tr-arena" data-k="${k}" role="radio" aria-checked="${c.arena===k}">${l}</button>`).join("")}</div>
+    <div class="grid2">
+      <div class="combo"><span class="slot">COMBO A · MIA</span><div class="row" style="gap:6px">${mineSel("a",c.a)}</div></div>
+      <div class="combo"><div class="row" style="justify-content:space-between"><span class="slot">COMBO B</span>
+          <span class="row" style="gap:4px"><button class="btn ${c.b.mine!==false?"primary":""}" data-act="tr-bown" data-mine="1">Mia</button><button class="btn ${c.b.mine===false?"primary":""}" data-act="tr-bown" data-mine="0">Avversaria</button></span></div>
+        <div class="row" style="gap:6px">${c.b.mine===false?oppInp(c.b):mineSel("b",c.b)}</div>
+        ${c.b.mine===false?`<p class="small muted">Scrivi solo quello che sai, anche niente: resta “avversario sconosciuto”.</p>`:""}
+      </div>
+    </div>
+    ${c.b.mine!==false?`<div class="row"><button class="btn ghost" data-act="tr-swap">Scambia A e B</button></div>`:""}
+  </section>
+
+  <section class="panel">
+    <div class="deck-head"><h3>${esc(nameA)} contro ${esc(nameB)}</h3><span class="chip">${esc(ARENAS.find(x=>x[0]===c.arena)[1])}</span></div>
+    ${ready?"":`<p class="note">Scegli almeno la lama della combo A${c.b.mine!==false?" e della combo B":""} per iniziare.</p>`}
+    <div class="row" style="justify-content:center;gap:18px">
+      <div class="stat" style="text-align:center"><span class="small muted">A vince</span><b style="font-size:40px">${T.a}</b></div>
+      <span class="muted" style="font-size:26px">–</span>
+      <div class="stat" style="text-align:center"><span class="small muted">B vince</span><b style="font-size:40px">${T.b}</b></div>
+    </div>
+    <p class="small muted" style="text-align:center">${cur.length?`${cur.length} scontri${T.d?`, ${T.d} pareggi`:""} · punti ${T.pa}-${T.pb}${T.a+T.b?` · A vince il ${Math.round(T.a/(T.a+T.b)*100)}%`:""}`:"Nessuno scontro ancora per questa sfida"}</p>
+    <div class="stack" style="gap:6px"><span class="small muted">Vince A (${esc(nameA)})</span><div class="row" style="gap:6px">${finBtns("a")}</div></div>
+    <div class="stack" style="gap:6px"><span class="small muted">Vince B (${esc(nameB)})</span><div class="row" style="gap:6px">${finBtns("b")}</div></div>
+    <div class="row"><button class="btn" data-act="tr-draw" ${ready?"":"disabled"}>Pareggio</button><button class="btn ghost" data-act="tr-undo" ${cur.length?"":"disabled"}>Annulla l'ultimo</button></div>
+    ${cur.length?`<div class="row" style="gap:6px">${cur.slice(-15).map(e=>`<span class="chip ${e.side==="a"?"good":e.side==="b"?"bad":""}">${e.side==="draw"?"pari":(e.side==="a"?"A ":"B ")+FINISH.find(x=>x[0]===e.f)[1]}</span>`).join("")}</div>`:""}
+    ${Object.keys(T.f).length?`<p class="small muted">${FINISH.map(([f,l])=>{const x=T.f["a:"+f]||0,y=T.f["b:"+f]||0; return x||y?`${l}: ${x}-${y}`:""}).filter(Boolean).join(" · ")}</p>`:""}
+  </section>
+
+  ${gl.length?`<section class="panel">${foldHead("train","Tutte le sfide",gl.length)}${fold.train?"":`<div>${gl.slice(0,trainShowAll?999:12).map(g=>{ const t=trainTally(g.list); const e=g.e;
+      return `<div class="alt"><span class="small" style="min-width:0"><b>${lab(e.a,true)}</b> contro <b>${lab(e.b,e.b.mine)}</b><br><span class="muted">${esc(ARENAS.find(x=>x[0]===e.arena)[1])} · ${g.list.length} scontri</span></span>
+        <span class="row" style="gap:6px"><span class="mono">${t.a}-${t.b}</span><button class="btn ghost" data-act="tr-load" data-t="${g.list[g.list.length-1].id}">Riprendi</button></span></div>`}).join("")}
+      ${gl.length>12&&!trainShowAll?`<button class="btn ghost" data-act="tr-more">Mostra tutte</button>`:""}</div>`}</section>`:""}`;
+}
+function trainClick(a,b){
+  if(!a.startsWith("tr-")) return false;
+  const c=trainCur(); S.trainLog=S.trainLog||[];
+  if(a==="tr-arena"){ c.arena=b.dataset.k; save(); render() }
+  if(a==="tr-bown"){ const m=b.dataset.mine==="1"; if((c.b.mine!==false)!==m) c.b={mine:m}; save(); render() }
+  if(a==="tr-swap"){ const A={...c.a}; c.a={...c.b}; delete c.a.mine; c.b={...A, mine:true}; save(); render() }
+  if(a==="tr-pt"||a==="tr-draw"){
+    const side=a==="tr-draw"?"draw":b.dataset.side, f=a==="tr-draw"?"draw":b.dataset.f;
+    const pts=side==="draw"?0:FINISH.find(x=>x[0]===f)[2];
+    S.trainLog.push({id:uid(), t:Date.now(), a:{...c.a}, b:{...c.b}, arena:c.arena, side, f, pts});
+    if(S.trainLog.length>2000) S.trainLog=S.trainLog.slice(-2000);
+    save(); render();
+  }
+  if(a==="tr-undo"){ for(let i=S.trainLog.length-1;i>=0;i--){ if(sameMatchup(S.trainLog[i],c)){ S.trainLog.splice(i,1); break } } save(); render() }
+  if(a==="tr-load"){ const e=S.trainLog.find(x=>x.id===b.dataset.t); if(e){ c.a={...e.a}; c.b={...e.b}; c.arena=e.arena; save(); render(); window.scrollTo({top:0}) } }
+  if(a==="tr-more"){ trainShowAll=true; render() }
+  return true;
+}
+function trainChange(t){
+  if(t.dataset.tr==null) return false;
+  const c=trainCur(); const side=t.dataset.tr, k=t.dataset.cf;
+  c[side]={...c[side], [k]:t.value.trim()};
+  if(k==="blade" && side!=="b"||k==="blade"&&c.b.mine!==false){ if(isIntegrated(t.value)) c[side].ratchet="" }
+  save(); render(); return true;
+}
+
+function vSavedTab(){
+  if(!S.decks.length) return `<section class="panel"><h2>I miei deck</h2><div class="empty">Non hai ancora salvato nessun deck. Nel Builder scegli i pezzi e premi “Salva tra i miei deck”.<div class="row" style="justify-content:center;margin-top:12px"><button class="btn primary" data-act="go-builder">Vai al Builder</button></div></div></section>`;
+  return vSaved();
+}
+function vSaved(){
+  if(!S.decks.length) return "";
+  return `<section class="panel"><h2>I miei deck</h2><div>${S.decks.map(d=>`
+    <div class="alt"><div class="stack" style="gap:4px"><input data-deckname="${d.id}" value="${esc(d.name)}" aria-label="Nome del deck" style="font-weight:600;max-width:100%"><span class="small muted">${esc(d.date)} · indice ${(+d.score||0).toFixed(1)}</span>
+      ${d.combos.map(c=>`<span class="mono small">${esc(c.blade)} ${esc(c.ratchet||"integrato")} ${esc(c.bitCode||c.bit)}</span>`).join("")}</div>
+    <div class="row"><button class="btn" data-act="use-saved" data-id="${d.id}">Usa nel torneo</button><button class="btn ghost" data-act="del-deck" data-id="${d.id}" aria-label="Elimina deck">Elimina</button></div></div>`).join("")}</div><div class="row"><button class="btn" data-act="go-builder">Crea un nuovo deck nel Builder</button></div></section>`;
+}
+
+function vParts(){
+  const groups=["blade","ratchet","bit"].map(type=>{
+    const list=S.parts.filter(p=>p.type===type); const sc=scorer(); const names=(meta()[type]||[]).map(x=>x[0]);
+    return `<section class="panel">
+      <div class="row" style="justify-content:space-between"><h3>${type==="blade"?"Lame":type==="bit"?"Punte":"Ratchet"} <span class="chip">${list.length}</span></h3></div>
+      ${list.length?`<div class="tbl"><table><thead><tr><th>${type==="bit"?"Sigla · nome":"Nome"}</th><th>Nome nei tornei</th>${type!=="ratchet"?"<th>Tipo</th>":""}${type==="blade"?"<th>Ratchet integrato</th><th>Rotazione sx</th>":""}<th>Qtà</th><th>Indice</th><th>Evita</th><th>Nota</th><th></th></tr></thead><tbody>
+      ${list.map(p=>{const s=sc(p); return `<tr class="${p.avoid?"off":""}">
+        <td>${type==="bit"?`<div class="row" style="gap:6px;flex-wrap:nowrap"><input data-f="code" data-id="${p.id}" value="${esc(p.code||"")}" style="width:52px" aria-label="Sigla"><input data-f="name" data-id="${p.id}" value="${esc(p.name)}" aria-label="Nome" style="width:120px"></div>`:`<input data-f="name" data-id="${p.id}" value="${esc(p.name)}" aria-label="Nome" style="width:150px">`}</td>
+        <td><select data-f="metaName" data-id="${p.id}" aria-label="Nome nei tornei"><option value="">fuori classifica</option>${names.map(n=>`<option ${n===p.metaName?"selected":""}>${esc(n)}</option>`).join("")}</select></td>
+        ${type!=="ratchet"?`<td><select data-f="kind" data-id="${p.id}" aria-label="Tipo"><option value="">?</option>${KINDS.map(k=>`<option ${k===p.kind?"selected":""}>${k}</option>`).join("")}</select></td>`:""}
+        ${type==="blade"?`<td><input type="checkbox" id="cb-integrated-${p.id}-${p.integrated?1:0}" data-f="integrated" data-id="${p.id}" ${p.integrated?"checked":""} aria-label="Ratchet integrato"></td><td><input type="checkbox" id="cb-left-${p.id}-${p.left?1:0}" data-f="left" data-id="${p.id}" ${p.left?"checked":""} aria-label="Rotazione sinistra"></td>`:""}
+        <td><input class="qty" type="number" min="0" data-f="qty" data-id="${p.id}" value="${+p.qty||0}" aria-label="Quantità"></td>
+        <td class="mono">${s.total.toFixed(0)}${s.metaRank?` <span class="muted small">#${s.metaRank}</span>`:""}${s.games?` <span class="chip">${s.games} inc.</span>`:""}</td>
+        <td><input type="checkbox" id="cb-avoid-${p.id}-${p.avoid?1:0}" data-f="avoid" data-id="${p.id}" ${p.avoid?"checked":""} aria-label="Escludi dai deck"></td>
+        <td><input data-f="note" data-id="${p.id}" value="${esc(p.note||"")}" placeholder="—" aria-label="Nota" style="width:150px"></td>
+        <td><button class="btn ghost" data-act="del-part" data-id="${p.id}" aria-label="Elimina ${esc(p.name)}">✕</button></td></tr>`}).join("")}
+      </tbody></table></div>`:`<div class="empty">Nessun pezzo registrato.</div>`}
+    </section>`;
+  }).join("");
+  return `<section class="panel">
+    <h2>La tua collezione</h2>
+    <p class="muted">Il nome è quello della confezione; “nome nei tornei” è quello usato nelle classifiche, e si ricollega da solo quando aggiorni il meta. Un pezzo fuori classifica vale ${fallback()} punti di indice. Se nella nota scrivi “balla” o “lento”, il ratchet viene penalizzato.</p>
+    <form id="add-part" class="row">
+      <select id="np-type" aria-label="Categoria"><option value="blade">Lama</option><option value="ratchet">Ratchet</option><option value="bit">Punta</option></select>
+      <input id="np-name" placeholder="Nome, es. Shark Scale o 3-60" required aria-label="Nome del pezzo" style="flex:1;min-width:160px">
+      <input id="np-code" placeholder="Sigla punta" aria-label="Sigla della punta" style="width:110px">
+      <button class="btn primary" type="submit">Aggiungi</button>
+    </form>
+  </section>${groups}${vBackup()}`;
+}
+
+function blankPhase(label, combos){ return {label:label||"Tutto il torneo", combos:combos?combos.map(c=>({...c})):[{},{},{}], wins:"", losses:""} }
+function newForm(){ return {mode:"new", date:new Date().toISOString().slice(0,10), event:"", place:"", players:"", notes:"", link:"", matches:[], phases:[blankPhase()]} }
+const deckCombos = d => d.combos.map(c=> c.b ? {blade:c.b.name, ratchet:c.r.id==="int"?"":c.r.name, bit:c.t.code||c.t.name} : {blade:c.blade, ratchet:c.ratchet, bit:c.bitCode||c.bit});
+// Copia nel modulo i campi in alto, così un nuovo render non li perde
+function syncFormTop(){
+  if(!form) return; const g=id=>{ const el=document.getElementById(id); return el?el.value:undefined };
+  for(const [k,id] of [["date","r-date"],["event","r-event"],["place","r-place"],["exit","r-exit"],["players","r-players"],["notes","r-notes"]]){ const v=g(id); if(v!==undefined) form[k]=v }
+}
+// ---------- Piazzamento ----------
+// Turno in cui si è usciti e posizioni che corrispondono, per quando non si sa il piazzamento esatto
+const EXITS=[["","Non indicato",""],["winner","Vincitore","1"],["final","Finale","2"],["semi","Semifinale","3-4"],["quarti","Quarti","5-8"],["ottavi","Ottavi","9-16"],["sedicesimi","Sedicesimi","17-32"],["girone","Fuori ai gironi",""],["exact","Posizione esatta",""]];
+const exitInfo = k => EXITS.find(x=>x[0]===k);
+const placeText = r => { const e=r.exit&&r.exit!=="exact"?exitInfo(r.exit):null; if(e) return e[2]?`${e[1]} (${e[2].replace("-","°-")}°)`:e[1]; return r.place?`${r.place}°`:"–" };
+// Turno di uscita calcolato dall'eliminazione diretta: N giocatori in fase finale, k incontri vinti prima della sconfitta
+function guessExit(phases, topCut){
+  const ko=(phases||[]).filter(p=>p.stage==="ko").flatMap(p=>p.matches||[]);
+  if(!ko.length) return "girone";
+  const k=ko.filter(m=>m.won).length, lostLast=!ko[ko.length-1].won;
+  if(!lostLast) return "winner";
+  const left=(+topCut||16)/Math.pow(2,k);
+  return {2:"final",4:"semi",8:"quarti",16:"ottavi",32:"sedicesimi"}[left]||"exact";
+}
+const exitSelect = (attrs, val) => `<select ${attrs} aria-label="Turno in cui sei uscito">${EXITS.map(([k,l,r])=>`<option value="${k}" ${k===(val||"")?"selected":""}>${l}${r?` (${r.replace("-","°-")}°)`:""}</option>`).join("")}</select>`;
+const topCutSelect = (attrs, val) => `<select ${attrs} aria-label="Giocatori in fase finale">${[4,8,16,32].map(n=>`<option value="${n}" ${+val===n?"selected":""}>Top ${n}</option>`).join("")}</select>`;
+function applyExit(r){ const e=exitInfo(r.exit); if(e && r.exit!=="exact") r.place=e[2] }
+
+// ---------- Torneo in corso ----------
+// S.live = {event, date, phases:[{label, stage:"girone"|"ko", target, combos[3], matches:[...]}], cur:{opp, battles:[], bey}}
+const FINISH = [["spin","Spin",1],["over","Over",2],["burst","Burst",2],["xtreme","Xtreme",3]];
+const STAGE_LABEL = {girone:"Girone", ko:"Eliminazione diretta"};
+const STAGE_TARGET = {girone:4, ko:7};
+let liveUI = {confirm:"", place:"", players:"", exit:null, topCut:16};
+const livePhase = () => S.live.phases[S.live.phases.length-1];
+const matchScore = m => (m.battles||[]).reduce((a,b)=>{ if(b.side==="me") a[0]+=b.pts; else if(b.side==="opp") a[1]+=b.pts; return a },[0,0]);
+const phaseWL = ph => (ph.matches||[]).reduce((a,m)=>[a[0]+(m.won?1:0), a[1]+(m.won?0:1)],[0,0]);
+const comboText = c => c && c.blade ? `${c.blade} ${c.ratchet||"integrato"} ${c.bit||""}` : "—";
+function newLivePhase(stage, combos, label){ return {label:label||STAGE_LABEL[stage], stage, target:STAGE_TARGET[stage], combos:(combos||[{},{},{}]).map(c=>({...c})), matches:[]} }
+function startLive(){
+  const g=id=>(document.getElementById(id)||{}).value||"";
+  const src=g("lv-deck"); let combos=[{},{},{}];
+  if(src==="best"){ const r=buildDecks(); if(r.decks) combos=deckCombos(r.decks[viewIdx]||r.decks[0]) }
+  else if(src){ const d=S.decks.find(x=>x.id===src); if(d) combos=deckCombos(d) }
+  S.live={event:g("lv-event").trim()||"Torneo", date:g("lv-date")||new Date().toISOString().slice(0,10), phases:[newLivePhase("girone",combos)], cur:{opp:"", battles:[], bey:0}};
+  liveUI={confirm:"",place:"",players:"",exit:null,topCut:16}; save(); render(); window.scrollTo({top:0});
+}
+function addBattle(side, f){
+  const L=S.live, ph=livePhase(), cur=L.cur; const fin=FINISH.find(x=>x[0]===f);
+  cur.battles.push({bey:cur.bey, side, f, pts: side==="draw"?0:fin[2]});
+  cur.bey=(cur.bey+1)%3; // il prossimo lancio di solito è la trottola successiva nell'ordine dichiarato
+  const [me,them]=matchScore(cur);
+  if(me>=ph.target || them>=ph.target){
+    ph.matches.push({opp:cur.opp.trim()||`Avversario ${ph.matches.length+1}`, battles:cur.battles, me, them, won:me>them});
+    L.cur={opp:"", battles:[], bey:0};
+    toast(me>them?`Incontro vinto ${me}-${them}`:`Incontro perso ${me}-${them}`);
+  }
+  save(); render();
+}
+function liveToResult(){
+  const L=S.live;
+  const phases=L.phases.filter(ph=>ph.matches.length).map(ph=>{ const [w,l]=phaseWL(ph); return {label:ph.label, stage:ph.stage, combos:ph.combos, wins:w, losses:l, matches:ph.matches} });
+  return {id:uid(), link:"", date:L.date, event:L.event, place:(liveUI.exit&&liveUI.exit!=="exact")?(exitInfo(liveUI.exit)||[])[2]||"":liveUI.place||"", exit:liveUI.exit||guessExit(L.phases,liveUI.topCut), topCut:liveUI.topCut, players:liveUI.players||"", notes:"", matches:[], phases: phases.length?phases:[{label:"Tutto il torneo", combos:livePhase().combos, wins:0, losses:0}]};
+}
+function vLive(){
+  if(!S.live){
+    const fill=`<option value="best">Deck mostrato nel Builder</option>${S.decks.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("")}<option value="">Lo scelgo dopo</option>`;
+    return `<section class="panel">
+      <h2>Torneo in corso</h2>
+      <p class="muted">Segna ogni scontro mentre giochi: il punteggio dell'incontro si aggiorna da solo e girone ed eliminazione diretta restano separati.</p>
+      <div class="grid3">
+        <label class="f">Evento<input id="lv-event" placeholder="es. Local Tetris 5.0"></label>
+        <label class="f">Data<input type="date" id="lv-date" value="${new Date().toISOString().slice(0,10)}"></label>
+        <label class="f">Deck<select id="lv-deck">${fill}</select></label>
+      </div>
+      <div class="row"><button class="btn primary" data-act="lv-start">Inizia il torneo</button></div>
+    </section>`;
+  }
+  const L=S.live, ph=livePhase(), cur=L.cur, [me,them]=matchScore(cur);
+  const allMatches=L.phases.flatMap(p=>p.matches.map(m=>({...m, phase:p.label})));
+  const opt=(type,val)=>`<option value="">—</option>`+S.parts.filter(p=>p.type===type&&!p.avoid).map(p=>{const v=p.type==="bit"?(p.code||p.name):p.name; return `<option ${v===val?"selected":""} value="${esc(v)}">${esc(v)}</option>`}).join("");
+  const fillOpts=`<option value="">Cambia deck</option><option value="best">Deck mostrato nel Builder</option>${S.decks.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("")}`;
+  const beyBtn=i=>`<button class="btn ${cur.bey===i?"primary":""}" data-act="lv-bey" data-i="${i}" style="flex:1;min-width:0;justify-content:center">${i+1}. ${esc((ph.combos[i]||{}).blade||"Trottola "+(i+1))}</button>`;
+  const finBtns=side=>FINISH.map(([f,lab,p])=>`<button class="btn ${side==="me"?"primary":""}" data-act="lv-pt" data-side="${side}" data-f="${f}" style="flex:1;min-width:64px;justify-content:center;padding-block:12px">${lab} +${p}</button>`).join("");
+  const editing = ph.matches.length===0 && cur.battles.length===0;
+  return `<section class="panel" id="live">
+    <div class="deck-head">
+      <div class="stack" style="gap:4px"><h2>${esc(L.event)}</h2><span class="small muted">${esc(L.date)}</span></div>
+      <span class="chip acc">${esc(ph.label)} · incontri a ${ph.target} punti</span>
+    </div>
+
+    <div class="combo">
+      <span class="slot">DECK ${ph.label.toUpperCase()}</span>
+      ${editing?`${[0,1,2].map(j=>{const c=ph.combos[j]||{}; return `<div class="row"><select data-lvc="${j}" data-cf="blade" aria-label="Lama ${j+1}">${opt("blade",c.blade)}</select><select data-lvc="${j}" data-cf="ratchet" aria-label="Ratchet ${j+1}">${opt("ratchet",c.ratchet)}</select><select data-lvc="${j}" data-cf="bit" aria-label="Punta ${j+1}">${opt("bit",c.bit)}</select></div>`}).join("")}
+        <p class="small muted">Per una lama con ratchet integrato lascia il ratchet vuoto.</p>`
+      :ph.combos.map((c,j)=>`<span class="mono small">${j+1}. ${esc(comboText(c))}</span>`).join("")}
+      <div class="row"><select data-lvfill="1" aria-label="Cambia deck">${fillOpts}</select></div>
+    </div>
+
+    <div class="combo" style="gap:12px">
+      <div class="row" style="justify-content:space-between">
+        <span class="slot">INCONTRO ${ph.matches.length+1}</span>
+        <input id="lv-opp" data-lv="opp" value="${esc(cur.opp)}" placeholder="Avversario" aria-label="Nome dell'avversario" style="flex:1;min-width:140px;max-width:260px">
+      </div>
+      <div class="row" style="justify-content:center;gap:18px">
+        <div class="stat" style="text-align:center"><span class="small muted">Tu</span><b style="font-size:44px">${me}</b></div>
+        <span class="muted" style="font-size:28px">–</span>
+        <div class="stat" style="text-align:center"><span class="small muted">${esc(cur.opp||"Avversario")}</span><b style="font-size:44px">${them}</b></div>
+      </div>
+      <div class="stack" style="gap:6px"><span class="small muted">Trottola in campo</span><div class="row" style="flex-wrap:nowrap;gap:6px">${[0,1,2].map(beyBtn).join("")}</div></div>
+      <div class="stack" style="gap:6px"><span class="small muted">Punto mio</span><div class="row" style="gap:6px">${finBtns("me")}</div></div>
+      <div class="stack" style="gap:6px"><span class="small muted">Punto dell'avversario</span><div class="row" style="gap:6px">${finBtns("opp")}</div></div>
+      <div class="row">
+        <button class="btn" data-act="lv-draw">Pareggio</button>
+        <button class="btn ghost" data-act="lv-undo" ${cur.battles.length||ph.matches.length?"":"disabled"}>Annulla l'ultimo</button>
+        <button class="btn ghost" data-act="lv-forfeit" data-won="1">Vinto a tavolino</button>
+        <button class="btn ghost" data-act="lv-forfeit" data-won="0">Perso a tavolino</button>
+      </div>
+      ${cur.battles.length?`<div class="row" style="gap:6px">${cur.battles.map(b=>`<span class="chip ${b.side==="me"?"good":b.side==="opp"?"bad":""}">${b.bey+1} · ${b.side==="draw"?"pari":(b.side==="me"?"tu ":"lui ")+FINISH.find(x=>x[0]===b.f)[1]}</span>`).join("")}</div>`:""}
+    </div>
+
+    ${vPhaseList("live")}
+
+    <div class="row">
+      ${ph.stage==="girone"?`<button class="btn primary" data-act="lv-ko">Passo all'eliminazione diretta</button>`:""}
+      ${liveUI.confirm==="end"?"":`<button class="btn" data-act="lv-end-ask">Concludi il torneo</button>`}
+      ${liveUI.confirm==="cancel"?`<span class="small">Cancellare il torneo in corso?</span><button class="btn" data-act="lv-cancel">Sì, cancella</button><button class="btn ghost" data-act="lv-no">No</button>`:`<button class="btn ghost" data-act="lv-cancel-ask">Annulla il torneo</button>`}
+    </div>
+    ${liveUI.confirm==="end"?`<div class="combo"><span class="slot">CONCLUDI</span><div class="grid3">
+        <label class="f">Partecipanti<input type="number" min="1" id="lv-players" data-lv="players" value="${esc(liveUI.players)}"></label>
+        <label class="f">In fase finale<span class="row" style="gap:6px">${topCutSelect('id="lv-topcut" data-lv="topCut"', liveUI.topCut)}</span></label>
+        <label class="f">Sei uscito a${exitSelect('id="lv-exit" data-lv="exit"', liveUI.exit||guessExit(L.phases, liveUI.topCut))}</label>
+        ${(liveUI.exit||guessExit(L.phases, liveUI.topCut))==="exact"?`<label class="f">Posizione<input type="number" min="1" id="lv-place" data-lv="place" value="${esc(liveUI.place)}"></label>`:""}</div>
+        <p class="small muted">Il turno è calcolato dagli incontri dell'eliminazione diretta e dal numero di giocatori in fase finale: correggilo se non torna.</p>
+        <div class="row"><button class="btn primary" data-act="lv-end">Salva nello storico</button><button class="btn ghost" data-act="lv-no">Torna al torneo</button></div>
+        ${cur.battles.length?`<p class="small muted">L'incontro aperto (${me}-${them}) non viene salvato.</p>`:""}</div>`:""}
+  </section>`;
+}
+function liveClick(a,b){
+  const L=S.live; if(!L && a!=="lv-start") return false;
+  if(a==="lv-start"){ startLive(); return true }
+  if(a==="lv-bey"){ L.cur.bey=+b.dataset.i; save(); render(); return true }
+  if(a==="lv-pt"){ addBattle(b.dataset.side, b.dataset.f); return true }
+  if(a==="lv-draw"){ addBattle("draw","spin"); return true }
+  if(a==="lv-undo"){
+    if(L.cur.battles.length){ const x=L.cur.battles.pop(); L.cur.bey=x.bey }
+    else { // riapro l'ultimo incontro chiuso
+      const ph=livePhase(); const m=ph.matches.pop(); if(m){ const bt=m.battles||[]; const x=bt.pop(); L.cur={opp:m.opp, battles:bt, bey:x?x.bey:0} } }
+    save(); render(); return true }
+  if(a==="lv-forfeit"){ const ph=livePhase(); const won=b.dataset.won==="1"; const [me,them]=matchScore(L.cur);
+    ph.matches.push({opp:L.cur.opp.trim()||`Avversario ${ph.matches.length+1}`, battles:L.cur.battles, me, them, won, forfeit:true});
+    L.cur={opp:"",battles:[],bey:0}; save(); render(); return true }
+  if(a==="lv-ko"){ const ph=livePhase(); L.phases.push(newLivePhase("ko", ph.combos)); L.cur={opp:"",battles:[],bey:0}; save(); render(); toast("Eliminazione diretta: incontri a 7 punti"); return true }
+  if(a==="lv-end-ask"){ liveUI.confirm="end"; render(); return true }
+  if(a==="lv-cancel-ask"){ liveUI.confirm="cancel"; render(); return true }
+  if(a==="lv-no"){ liveUI.confirm=""; render(); return true }
+  if(a==="lv-cancel"){ S.live=null; liveUI={confirm:"",place:"",players:"",exit:null,topCut:16}; save(); render(); toast("Torneo cancellato"); return true }
+  if(a==="lv-end"){ S.results.push(liveToResult()); S.live=null; liveUI={confirm:"",place:"",players:"",exit:null,topCut:16}; save(); render(); toast("Torneo salvato nello storico"); return true }
+  return false;
+}
+function liveChange(t){
+  const L=S.live; if(!L) return false;
+  if(t.dataset.lv==="opp"){ L.cur.opp=t.value; save(); return true }
+  if(t.dataset.lv==="place"||t.dataset.lv==="players"){ liveUI[t.dataset.lv]=t.value; return true }
+  if(t.dataset.lv==="topCut"){ liveUI.topCut=+t.value; liveUI.exit=null; render(); return true }
+  if(t.dataset.lv==="exit"){ liveUI.exit=t.value; render(); return true }
+  if(t.dataset.lvc!=null){ const ph=livePhase(); const j=+t.dataset.lvc; ph.combos[j]={...(ph.combos[j]||{}), [t.dataset.cf]:t.value}; save(); return true }
+  if(t.dataset.lvfill && t.value){ const d = t.value==="best" ? (buildDecks().decks||[])[viewIdx] : S.decks.find(x=>x.id===t.value); if(d) liveSetDeck(deckCombos(d)); return true }
+  return false;
+}
+// Nuovo deck: se nella fase ci sono già incontri, apro una fase nuova così i risultati restano attribuiti al deck giusto
+function liveSetDeck(combos){
+  const L=S.live, ph=livePhase();
+  if(ph.matches.length===0 && L.cur.battles.length===0){ ph.combos=combos.map(c=>({...c})) }
+  else { const n=L.phases.filter(p=>p.stage===ph.stage).length+1; L.phases.push(newLivePhase(ph.stage, combos, `${STAGE_LABEL[ph.stage]} (deck ${n})`)); toast("Deck cambiato: i prossimi incontri contano per il nuovo deck") }
+  save(); render();
+}
+
+// ---------- Modifica dei risultati già segnati ----------
+let ed=null;        // incontro aperto in modifica: {ctx, pi, mi}
+let edDeck=null;    // fase di cui si modifica il deck: {ctx, pi}
+let edConfirm="";   // conferma di eliminazione in corso
+let histEdit=null;  // id del torneo dello storico in modifica
+function phasesFor(ctx){ if(ctx==="live") return S.live?S.live.phases:null; const r=S.results.find(x=>x.id===ctx); return r?r.phases:null }
+// Ricalcola punteggi, esito degli incontri e bilanci delle fasi dopo una modifica
+function recompute(ctx, autoWon){
+  const phs=phasesFor(ctx); if(!phs) return;
+  phs.forEach(ph=>{
+    (ph.matches||[]).forEach(m=>{ if((m.battles||[]).length){ const [a,b]=matchScore(m); m.me=a; m.them=b; if(autoWon && autoWon===m && a!==b) m.won=a>b } });
+    if(ctx!=="live" && (ph.matches||[]).length){ const [w,l]=phaseWL(ph); ph.wins=w; ph.losses=l }
+  });
+}
+const same = (a,b) => a && b && a.ctx===b.ctx && a.pi===b.pi && (b.mi==null || a.mi===b.mi);
+function vPhaseList(ctx){
+  const phs=phasesFor(ctx); if(!phs) return "";
+  const at=(pi,mi)=>`data-ctx="${esc(ctx)}" data-pi="${pi}"${mi!=null?` data-mi="${mi}"`:""}`;
+  const opt=(type,val)=>`<option value="">—</option>`+S.parts.filter(p=>p.type===type).map(p=>{const v=p.type==="bit"?(p.code||p.name):p.name; return `<option ${v===val?"selected":""} value="${esc(v)}">${esc(v)}</option>`}).join("");
+  return phs.map((p,pi)=>{
+    if(!p.matches) p.matches=[];
+    if(ctx==="live" && !p.matches.length && pi!==phs.length-1) return "";
+    const [w,l]=phaseWL(p); const deckOpen=same({ctx,pi},edDeck);
+    const canDel = !p.matches.length && phs.length>1;
+    return `<div class="stack" style="gap:6px;border-top:1px solid var(--line);padding-top:10px">
+      <div class="row" style="justify-content:space-between">
+        <h3>${esc(p.label)} <span class="mono">${w}-${l}</span></h3>
+        <div class="row" style="gap:4px">
+          <button class="btn ghost" type="button" data-act="ed-deck" ${at(pi)}>${deckOpen?"Chiudi":"Modifica fase"}</button>
+          ${ctx!=="live"?`<button class="btn ghost" type="button" data-act="ed-madd" ${at(pi)}>+ Incontro</button>`:""}
+          ${canDel?(edConfirm===`ph:${ctx}:${pi}`?`<button class="btn" type="button" data-act="ed-phdel" ${at(pi)}>Conferma eliminazione</button>`:`<button class="btn ghost" type="button" data-act="ed-phdel-ask" ${at(pi)}>Elimina fase</button>`):""}
+        </div>
+      </div>
+      ${deckOpen?`<div class="combo" style="gap:8px">
+          <div class="row"><input data-edp="label" ${at(pi)} value="${esc(p.label||"")}" aria-label="Nome della fase" style="flex:1;min-width:160px">
+            <select data-edp="stage" ${at(pi)} aria-label="Fase"><option value="girone" ${p.stage!=="ko"?"selected":""}>Girone (a 4)</option><option value="ko" ${p.stage==="ko"?"selected":""}>Eliminazione diretta (a 7)</option></select></div>
+          ${[0,1,2].map(j=>{const c=(p.combos||[])[j]||{}; return `<div class="row"><select data-edc="${j}" data-cf="blade" ${at(pi)} aria-label="Lama ${j+1}">${opt("blade",c.blade)}</select><select data-edc="${j}" data-cf="ratchet" ${at(pi)} aria-label="Ratchet ${j+1}">${opt("ratchet",c.ratchet)}</select><select data-edc="${j}" data-cf="bit" ${at(pi)} aria-label="Punta ${j+1}">${opt("bit",c.bit)}</select></div>`}).join("")}
+          <p class="small muted">Cambiare il deck qui corregge a quali trottole vanno gli scontri già segnati in questa fase.</p>
+        </div>`:`<span class="mono small muted">${(p.combos||[]).map((c,j)=>`${j+1}. ${esc(comboText(c))}`).join(" · ")}</span>`}
+      ${p.matches.map((m,mi)=>{
+        if(!same({ctx,pi,mi},ed)) return `<div class="row" style="justify-content:space-between"><span><span class="chip ${m.won?"good":"bad"}">${m.won?"V":"P"}</span> ${esc(m.opp||"—")}${m.forfeit?' <span class="small muted">a tavolino</span>':""}</span><span class="row" style="gap:6px"><span class="mono">${+m.me||0}-${+m.them||0}</span><button class="btn ghost" type="button" data-act="ed-open" ${at(pi,mi)}>Modifica</button></span></div>`;
+        const beyName=j=>`${j+1}. ${((p.combos||[])[j]||{}).blade||"Trottola "+(j+1)}`;
+        return `<div class="combo" style="gap:8px">
+          <div class="row">
+            <input data-edm="opp" ${at(pi,mi)} value="${esc(m.opp||"")}" placeholder="Avversario" aria-label="Avversario" style="flex:1;min-width:140px">
+            <select data-edm="won" ${at(pi,mi)} aria-label="Esito"><option value="1" ${m.won?"selected":""}>Vinto</option><option value="0" ${!m.won?"selected":""}>Perso</option></select>
+            ${(m.battles||[]).length?`<span class="mono">${+m.me||0}-${+m.them||0}</span>`:`<input type="number" min="0" data-edm="me" ${at(pi,mi)} value="${+m.me||0}" aria-label="Tuoi punti" style="width:64px"><span>–</span><input type="number" min="0" data-edm="them" ${at(pi,mi)} value="${+m.them||0}" aria-label="Punti avversario" style="width:64px">`}
+          </div>
+          ${(m.battles||[]).map((b,bi)=>`<div class="row" style="gap:6px">
+            <select data-edb="${bi}" data-k="bey" ${at(pi,mi)} aria-label="Trottola">${[0,1,2].map(j=>`<option value="${j}" ${b.bey===j?"selected":""}>${esc(beyName(j))}</option>`).join("")}</select>
+            <select data-edb="${bi}" data-k="side" ${at(pi,mi)} aria-label="Chi fa punto"><option value="me" ${b.side==="me"?"selected":""}>Punto mio</option><option value="opp" ${b.side==="opp"?"selected":""}>Punto avversario</option><option value="draw" ${b.side==="draw"?"selected":""}>Pareggio</option></select>
+            ${b.side==="draw"?"":`<select data-edb="${bi}" data-k="f" ${at(pi,mi)} aria-label="Finish">${FINISH.map(([f,lab,pt])=>`<option value="${f}" ${b.f===f?"selected":""}>${lab} +${pt}</option>`).join("")}</select>`}
+            <button class="btn ghost" type="button" data-act="ed-bdel" data-bi="${bi}" ${at(pi,mi)} aria-label="Togli lo scontro">✕</button>
+          </div>`).join("")}
+          <div class="row">
+            <button class="btn" type="button" data-act="ed-badd" ${at(pi,mi)}>+ Scontro</button>
+            ${phs.length>1?`<select data-edm="move" ${at(pi,mi)} aria-label="Sposta in un'altra fase"><option value="">Sposta in un'altra fase</option>${phs.map((q,qi)=>qi===pi?"":`<option value="${qi}">${esc(q.label)}</option>`).join("")}</select>`:""}
+            ${edConfirm===`m:${ctx}:${pi}:${mi}`?`<button class="btn" type="button" data-act="ed-mdel" ${at(pi,mi)}>Conferma eliminazione</button>`:`<button class="btn ghost" type="button" data-act="ed-mdel-ask" ${at(pi,mi)}>Elimina incontro</button>`}
+            <button class="btn primary" type="button" data-act="ed-close">Fatto</button>
+          </div>
+        </div>`;
+      }).join("")}
+    </div>`;
+  }).join("");
+}
+function vHistEdit(){
+  const r=histEdit && S.results.find(x=>x.id===histEdit); if(!r){ histEdit=null; return "" }
+  const [w,l]=totWL(r);
+  return `<section class="panel" id="hist-edit">
+    <div class="deck-head"><h2>Modifica torneo</h2><span class="mono">${w}-${l}</span></div>
+    <div class="grid3">
+      <label class="f">Evento<input data-hf="event" value="${esc(r.event||"")}"></label>
+      <label class="f">Data<input type="date" data-hf="date" value="${esc(r.date||"")}"></label>
+      <label class="f">Sei uscito a${exitSelect('data-hf="exit"', r.exit||(r.place?"exact":""))}</label>
+      ${(r.exit||(r.place?"exact":""))==="exact"?`<label class="f">Posizione<input type="number" min="1" data-hf="place" value="${esc(r.place||"")}"></label>`:""}
+      <label class="f">Partecipanti<input type="number" min="1" data-hf="players" value="${esc(r.players||"")}"></label>
+      <label class="f">Note<input data-hf="notes" value="${esc(r.notes||"")}"></label>
+    </div>
+    ${vPhaseList(r.id)}
+    <div class="row"><button class="btn primary" data-act="hist-done">Fatto</button></div>
+  </section>`;
+}
+function edTarget(b){ const ctx=b.dataset.ctx, pi=+b.dataset.pi, mi=b.dataset.mi!=null?+b.dataset.mi:null; const phs=phasesFor(ctx); const ph=phs&&phs[pi]; const m=ph&&mi!=null?ph.matches[mi]:null; return {ctx,pi,mi,phs,ph,m} }
+function edClick(a,b){
+  if(a==="hist-done"){ histEdit=null; ed=null; edDeck=null; render(); return true }
+  if(!a.startsWith("ed-")) return false;
+  if(a==="ed-close"){ ed=null; edConfirm=""; render(); return true }
+  const T=edTarget(b); if(!T.ph) return true;
+  if(a==="ed-open"){ ed={ctx:T.ctx,pi:T.pi,mi:T.mi}; edConfirm=""; render(); return true }
+  if(a==="ed-deck"){ edDeck=same({ctx:T.ctx,pi:T.pi},edDeck)?null:{ctx:T.ctx,pi:T.pi}; render(); return true }
+  if(a==="ed-madd"){ T.ph.matches.push({opp:"", battles:[], me:0, them:0, won:false}); ed={ctx:T.ctx,pi:T.pi,mi:T.ph.matches.length-1}; recompute(T.ctx); save(); render(); return true }
+  if(a==="ed-badd" && T.m){ T.m.battles=T.m.battles||[]; T.m.battles.push({bey:T.m.battles.length%3, side:"me", f:"spin", pts:1}); recompute(T.ctx,T.m); save(); render(); return true }
+  if(a==="ed-bdel" && T.m){ T.m.battles.splice(+b.dataset.bi,1); recompute(T.ctx,T.m); save(); render(); return true }
+  if(a==="ed-mdel-ask"){ edConfirm=`m:${T.ctx}:${T.pi}:${T.mi}`; render(); return true }
+  if(a==="ed-mdel"){ T.ph.matches.splice(T.mi,1); ed=null; edConfirm=""; recompute(T.ctx); save(); render(); toast("Incontro eliminato"); return true }
+  if(a==="ed-phdel-ask"){ edConfirm=`ph:${T.ctx}:${T.pi}`; render(); return true }
+  if(a==="ed-phdel"){ T.phs.splice(T.pi,1); edDeck=null; ed=null; edConfirm=""; recompute(T.ctx); save(); render(); toast("Fase eliminata"); return true }
+  return true;
+}
+function edChange(t){
+  if(t.dataset.hf){ const r=S.results.find(x=>x.id===histEdit); if(r){ r[t.dataset.hf]=t.value; if(t.dataset.hf==="exit"){ applyExit(r); render() } save() } return true }
+  if(t.dataset.ctx==null) return false;
+  const T=edTarget(t); if(!T.ph) return true;
+  if(t.dataset.edp){ if(t.dataset.edp==="stage"){ T.ph.stage=t.value; T.ph.target=STAGE_TARGET[t.value] } else T.ph.label=t.value; save(); render(); return true }
+  if(t.dataset.edc!=null){ const j=+t.dataset.edc; T.ph.combos=T.ph.combos||[{},{},{}]; T.ph.combos[j]={...(T.ph.combos[j]||{}), [t.dataset.cf]:t.value}; save(); render(); return true }
+  if(!T.m) return true;
+  if(t.dataset.edm==="opp"){ T.m.opp=t.value; save(); return true }
+  if(t.dataset.edm==="won"){ T.m.won=t.value==="1"; recompute(T.ctx); save(); render(); return true }
+  if(t.dataset.edm==="me"||t.dataset.edm==="them"){ T.m[t.dataset.edm]=Math.max(0,+t.value||0); save(); render(); return true }
+  if(t.dataset.edm==="move" && t.value!==""){ const qi=+t.value; const [m]=T.ph.matches.splice(T.mi,1); T.phs[qi].matches.push(m); ed={ctx:T.ctx,pi:qi,mi:T.phs[qi].matches.length-1}; recompute(T.ctx); save(); render(); toast("Incontro spostato"); return true }
+  if(t.dataset.edb!=null){ const bt=T.m.battles[+t.dataset.edb]; const k=t.dataset.k;
+    if(k==="bey") bt.bey=+t.value; else if(k==="side"){ bt.side=t.value; if(t.value==="draw") bt.pts=0; else bt.pts=(FINISH.find(x=>x[0]===bt.f)||FINISH[0])[2] } else if(k==="f"){ bt.f=t.value; bt.pts=FINISH.find(x=>x[0]===t.value)[2] }
+    recompute(T.ctx,T.m); save(); render(); return true }
+  return true;
+}
+
+// Storico compatto: una riga per torneo, i dettagli si aprono toccandola
+let histOpen=null;
+function vHistRow(r){
+  const [W,L]=totWL(r), phs=phasesOf(r), open=histOpen===r.id;
+  // bilancio per girone ed eliminazione diretta, sommando le fasi dello stesso tipo
+  const by={}; phs.forEach(ph=>{ const k=ph.stage==="ko"?"Eliminazione":ph.stage==="girone"?"Girone":(ph.label||"Torneo"); by[k]=by[k]||[0,0]; by[k][0]+=+ph.wins||0; by[k][1]+=+ph.losses||0 });
+  const parts=Object.entries(by).map(([k,[w,l]])=>`${k} ${w}-${l}`).join(" · ");
+  const pl=placeText(r);
+  return `<div style="border-top:1px solid var(--line)">
+    <button type="button" data-act="hist-toggle" data-id="${r.id}" aria-expanded="${open}" style="all:unset;box-sizing:border-box;display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;width:100%;padding:10px 0;cursor:pointer">
+      <span style="min-width:0"><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.event||"Torneo")}</b><span class="small muted">${esc(r.date||"")}${parts?" · "+esc(parts):""}</span></span>
+      ${pl!=="–"?`<span class="chip acc">${esc(pl)}</span>`:"<span></span>"}
+      <span class="mono">${W}-${L} ${open?"▴":"▾"}</span>
+    </button>
+    ${open?`<div class="stack" style="gap:8px;padding-bottom:12px">
+      ${r.players?`<span class="small muted">${esc(r.players)} partecipanti</span>`:""}
+      ${r.notes?`<span class="small">${esc(r.notes)}</span>`:""}
+      ${phs.map(ph=>`<div class="stack" style="gap:2px"><span class="small"><b>${esc(ph.label||"")}</b> <span class="mono">${+ph.wins||0}-${+ph.losses||0}</span></span><span class="mono small muted">${(ph.combos||[]).filter(c=>c&&c.blade).map(c=>`${esc(c.blade)} ${esc(c.ratchet||"int.")} ${esc(c.bit||"")}`).join(" · ")}</span></div>`).join("")}
+      <div class="row"><button class="btn" data-act="edit-res" data-id="${r.id}">Modifica</button>
+        ${edConfirm==="r:"+r.id?`<button class="btn" data-act="del-res" data-id="${r.id}">Conferma eliminazione</button><button class="btn ghost" data-act="hist-nodel">No</button>`:`<button class="btn ghost" data-act="hist-del-ask" data-id="${r.id}">Elimina</button>`}</div>
+    </div>`:""}
+  </div>`;
+}
+function vResults(){
+  const st=personalStats(); let w=0,l=0;
+  S.results.forEach(r=>{ const [a,b]=totWL(r); w+=a; l+=b });
+  const combos=[...st.entries()].filter(([k])=>k.startsWith("combo:")).map(([k,v])=>({c:k.slice(6).split("|"),...v,g:v.w+v.l})).filter(x=>x.g).sort((a,b)=>(b.w/b.g)-(a.w/a.g)||b.g-a.g).slice(0,5);
+  const user=S.settings.challonge||"";
+  if(!form) form=newForm();
+  const d=form;
+  const opt=(type,val)=>`<option value="">—</option>`+S.parts.filter(p=>p.type===type).map(p=>{const v=p.type==="bit"?(p.code||p.name):p.name; return `<option ${v===val?"selected":""} value="${esc(v)}">${esc(v)}${p.type==="bit"&&p.code?` · ${esc(p.name)}`:""}</option>`}).join("");
+  const fillOpts=`<option value="">Riempi con un deck</option><option value="best">Deck mostrato nel Builder</option>${S.decks.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("")}`;
+  const [fw,fl]=d.phases.reduce((a,p)=>[a[0]+(+p.wins||0),a[1]+(+p.losses||0)],[0,0]);
+  return vLive() + vHistEdit() + `
+  <section class="panel">
+    <h2>Risultati ai tornei</h2>
+    <div class="grid3">
+      <div class="stat"><span class="muted small">Tornei</span><b>${S.results.length}</b></div>
+      <div class="stat"><span class="muted small">Incontri vinti / persi</span><b>${w} / ${l}</b></div>
+      <div class="stat"><span class="muted small">Percentuale vittorie</span><b>${w+l?Math.round(w/(w+l)*100)+"%":"–"}</b></div>
+    </div>
+    ${combos.length?`<div class="stack"><h3>Le tue combo migliori</h3>${combos.map(x=>`<div class="row" style="justify-content:space-between"><span><b>${esc(x.c[0])}</b> <span class="mono">${esc(x.c[1])} ${esc(x.c[2])}</span></span><span class="mono">${x.w}-${x.l} · ${Math.round(x.w/x.g*100)}%</span></div>`).join("")}</div>`:""}
+  </section>
+
+  <section class="panel">
+    <h3>${d.mode==="edit"?"Modifica torneo":d.mode==="import"?"Controlla il torneo importato":"Aggiungi un torneo"}</h3>
+    <form id="res-form" class="stack">
+      <div class="grid3">
+        <label class="f">Data<input type="date" id="r-date" value="${esc(d.date||"")}"></label>
+        <label class="f">Evento<input id="r-event" value="${esc(d.event||"")}" placeholder="es. Local del martedì" required></label>
+        <label class="f">Sei uscito a${exitSelect('id="r-exit"', d.exit||(d.place?"exact":""))}</label>
+        <label class="f">Posizione esatta (se la sai)<input type="number" min="1" id="r-place" value="${esc(d.exit&&d.exit!=="exact"?"":(d.place||""))}"></label>
+        <label class="f">Partecipanti<input type="number" min="1" id="r-players" value="${esc(d.players||"")}"></label>
+      </div>
+      ${d.phases.map((ph,i)=>`
+      <div class="combo" style="gap:8px">
+        <div class="row" style="justify-content:space-between">
+          <span class="slot">DECK ${d.phases.length>1?`${i+1} DI ${d.phases.length}`:"USATO"}</span>
+          ${d.phases.length>1?`<button class="btn ghost" type="button" data-act="ph-del" data-i="${i}">Rimuovi</button>`:""}
+        </div>
+        <div class="row">
+          ${d.phases.length>1?`<input data-ph="${i}" data-pf="label" value="${esc(ph.label||"")}" placeholder="es. Gironi, Fase finale, dal 3° round" aria-label="Nome della fase" style="flex:1;min-width:160px">`:""}
+          <select data-fill="${i}" aria-label="Riempi con un deck">${fillOpts}</select>
+        </div>
+        ${[0,1,2].map(j=>{const c=(ph.combos||[])[j]||{}; return `<div class="row"><select data-ph="${i}" data-cj="${j}" data-cf="blade" aria-label="Lama ${j+1}">${opt("blade",c.blade)}</select><select data-ph="${i}" data-cj="${j}" data-cf="ratchet" aria-label="Ratchet ${j+1}">${opt("ratchet",c.ratchet)}</select><select data-ph="${i}" data-cj="${j}" data-cf="bit" aria-label="Punta ${j+1}">${opt("bit",c.bit)}</select></div>`}).join("")}
+        <div class="row">
+          <label class="f">Vinti${d.phases.length>1?" con questo deck":""}<input type="number" min="0" data-ph="${i}" data-pf="wins" value="${esc(ph.wins??"")}" style="width:90px"></label>
+          <label class="f">Persi${d.phases.length>1?" con questo deck":""}<input type="number" min="0" data-ph="${i}" data-pf="losses" value="${esc(ph.losses??"")}" style="width:90px"></label>
+        </div>
+      </div>`).join("")}
+      <div class="row"><button class="btn" type="button" data-act="ph-add">Ho cambiato pezzi durante il torneo</button>${d.phases.length>1?`<span class="small muted">Totale: <span class="mono">${fw}-${fl}</span></span>`:""}</div>
+      ${d.phases.length>1?`<p class="small muted">Dividi vittorie e sconfitte tra i deck: così l'indice premia la combo che ha giocato davvero quegli incontri.</p>`:""}
+      ${d.matches&&d.matches.length?`<div class="stack small">${d.matches.map(m=>`<span><span class="chip ${m.won?"good":"bad"}">${m.won?"V":"P"}</span> ${esc(m.opp)} <span class="mono">${esc(m.score||"")}</span></span>`).join("")}</div>`:""}
+      <label class="f">Note<input id="r-notes" value="${esc(d.notes||"")}" placeholder="regole extra, avversari, osservazioni"></label>
+      <div class="row"><button class="btn primary" type="submit">${d.mode==="edit"?"Salva modifiche":"Registra torneo"}</button>${d.mode!=="new"||d.event?`<button class="btn" type="button" data-act="cancel-res">Annulla</button>`:""}</div>
+    </form>
+  </section>
+
+  <section class="panel">
+    <h3>Challonge</h3>
+    <div class="row">
+      <label class="f" style="flex:1;min-width:200px">Il tuo nome utente Challonge<input id="ch-user" value="${esc(user)}" placeholder="es. andrea_bbx"></label>
+      ${user?`<a class="btn" href="https://challonge.com/it/users/${encodeURIComponent(user.toLowerCase())}/tournaments" target="_blank" rel="noopener">Apri il profilo ↗</a>`:""}
+    </div>
+    <div class="row">
+      <button class="btn primary" data-act="ch-find" ${aiBusy||!user?"disabled":""}>Cerca i miei tornei</button>
+    </div>
+    <div class="row">
+      <input id="ch-link" placeholder="oppure incolla il link di un torneo, es. https://challonge.com/xyz" aria-label="Link del torneo Challonge" style="flex:1;min-width:220px">
+      <button class="btn" data-act="ch-link" ${aiBusy?"disabled":""}>Importa dal link</button>
+    </div>
+    ${chMsg?`<p class="note">${esc(chMsg)}</p>${browserDenied?`<div class="row"><button class="btn" data-act="open-perms">Permessi</button><span class="small muted">Attiva “browser” per Deck Lab BBX, poi riprova.</span></div>`:""}`:""}
+    ${chList&&chList.length?`<div>${chList.map((t,i)=>`<div class="alt"><span class="small" style="min-width:0;overflow-wrap:anywhere"><b>${esc(t.title||t.url)}</b><br><span class="mono muted">${esc(t.url)}</span></span>${S.results.some(r=>r.link===t.url)?`<span class="chip good">già registrato</span>`:`<button class="btn" data-act="ch-import" data-i="${i}" ${aiBusy?"disabled":""}>Importa</button>`}</div>`).join("")}</div>`:""}
+    <p class="small muted">L'importazione compila il modulo qui sopra e tiene il deck che hai già inserito.${STANDALONE?"":" La lettura automatica usa il browser dell'app Claude per Mac."}</p>
+${STANDALONE?"":`    <details>
+      <summary style="cursor:pointer;font-weight:600">Importa incollando il testo</summary>
+      <div class="stack" style="margin-top:10px">
+        <textarea id="ch-paste" placeholder="Incolla qui il testo della pagina del torneo su Challonge"></textarea>
+        <div class="row"><button class="btn" data-act="import-ch" ${aiBusy?"disabled":""}>Estrai i risultati</button></div>
+      </div>
+    </details>`}
+  </section>
+
+  ${S.results.length?`<section class="panel"><h3>Storico</h3><div>${[...S.results].sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(vHistRow).join("")}</div></section>`:`<div class="empty">Nessun torneo registrato. Dopo il primo, l'indice dei pezzi tiene conto di come sono andati.</div>`}`;
+}
+
+function vMeta(){
+  const M=meta(); const ownBy=t=>new Set(S.parts.filter(p=>p.type===t&&p.metaName).map(p=>normKey(p.metaName)));
+  const ref = M.fetchedAt || (M.end ? M.end+"T12:00:00" : null);
+  const ageDays = ref ? Math.round((Date.now()-new Date(ref).getTime())/864e5) : null;
+  const isCount = M.unit==="count";
+  const list=(t,title)=>{const own=ownBy(t); const arr=(M[t]||[]).slice(0,25); const max=Math.max(1,...arr.map(x=>x[1]));
+    return `<div class="panel"><h3>${title}</h3><div>${arr.map(([n,s],i)=>`<div class="rank ${own.has(normKey(n))?"own":""}"><span class="r">#${i+1}</span><span class="nm"><span>${esc(n)}</span><i><b style="width:${(s/max*100).toFixed(0)}%"></b></i></span><span class="s">${s}</span></div>`).join("")}</div></div>`};
+  const cx=["lockchip","overblade","assist"].some(k=>(M[k]||[]).length);
+  const tf=M.period||"year";
+  return `
+  <section class="panel">
+    <h2>Meta attuale</h2>
+    <div class="row">
+      <span class="chip acc">${esc(M.source||"BBX Weekly")}</span>
+      ${isCount?`<span class="chip">${esc(PERIOD_LABEL[M.period]||M.period||"")}</span><span class="mono small">letto il ${new Date(M.fetchedAt).toLocaleDateString("it-IT")}</span>${M.appearances?`<span class="chip">${M.appearances} apparizioni in top cut</span>`:""}`
+        :`<span class="chip">${esc(M.week||"")}</span><span class="mono small">${esc(M.start||"")} → ${esc(M.end||"")}</span>${M.events?`<span class="chip">${M.events} eventi</span>`:""}`}
+      ${ageDays!=null && ageDays>14?`<span class="chip warn">dati di ${ageDays} giorni fa</span>`:""}
+    </div>
+    <p class="muted small">In arancione i pezzi che possiedi. ${isCount?"Il numero indica quante volte il pezzo è comparso in un deck arrivato in top cut. I dati MetaBeys vengono soprattutto da tornei in Canada e Stati Uniti.":"Punteggio pubblicato da BBX Weekly sui tornei WBO."}</p>
+    <div class="row">
+      ${STANDALONE
+        ?`<label class="f">Periodo<select id="mb-tf">${NATIVE_PERIODS.map(([v,l])=>`<option value="${v}" ${v===(NATIVE_PERIODS.some(x=>x[0]===tf)?tf:"d180")?"selected":""}>${l}</option>`).join("")}</select></label>
+          <button class="btn primary" data-act="mb-native" ${aiBusy?"disabled":""}>${aiBusy&&metaMsg?"Aggiornamento in corso…":"Aggiorna da MetaBeys"}</button>`
+        :`<label class="f">Periodo<select id="mb-tf">${["year","month","all"].map(v=>`<option value="${v}" ${v===tf?"selected":""}>${PERIOD_LABEL[v]}</option>`).join("")}</select></label>
+          <button class="btn primary" data-act="mb-update" ${aiBusy?"disabled":""}>${aiBusy&&metaMsg?"Lettura in corso…":"Aggiorna da MetaBeys"}</button>`}
+      ${S.meta?`<button class="btn" data-act="reset-meta">Torna ai dati di partenza</button>`:""}
+    </div>
+    ${metaMsg?`<p class="note">${esc(metaMsg)}</p>${browserDenied?`<div class="row"><button class="btn" data-act="open-perms">Permessi</button><span class="small muted">Attiva “browser” per Deck Lab BBX, poi riprova.</span></div>`:""}`:""}
+    <p class="small muted">${STANDALONE?"L'app scarica i tornei di MetaBeys e calcola le classifiche da sola; all'apertura si aggiorna se i dati hanno più di 3 giorni. Periodi brevi contengono pochi tornei.":"La lettura automatica usa il browser dell'app Claude per Mac: la prima volta ti chiede il permesso. “Ultimo mese” include pochi tornei, quindi è meno affidabile."}</p>
+    <details>
+      <summary style="cursor:pointer;font-weight:600">Aggiorna incollando il testo</summary>
+      <div class="stack" style="margin-top:10px">
+        <p class="note">Su iPhone o nel browser: apri <a href="https://www.bbxweekly.com/4weeks" target="_blank" rel="noopener">BBX Weekly</a>, seleziona tutto il testo e incollalo qui.</p>
+        <textarea id="meta-paste" placeholder="Incolla il testo della pagina"></textarea>
+        <div class="row"><button class="btn" data-act="import-meta" ${aiBusy?"disabled":""}>Aggiorna classifiche</button></div>
+      </div>
+    </details>
+  </section>
+  ${(M.combos||[]).length?(()=>{ const own=t=>k=>ownsCanon(t,canon(k)); const top=M.combos.slice(0,20); const max=Math.max(1,...top.map(c=>c[3]));
+    return `<section class="panel"><h3>Combo più usate in top cut</h3><p class="small muted">In arancione le combo che puoi montare con i tuoi pezzi.</p><div>${top.map((c,i)=>{const full=own("blade")(c[0])&&(c[1]==="-"||own("ratchet")(c[1]))&&own("bit")(c[2]);
+      return `<div class="rank ${full?"own":""}"><span class="r">#${i+1}</span><span class="nm"><span>${esc(c[0])} <span class="mono muted">${esc(c[1])} · ${esc(c[2])}</span></span><i><b style="width:${(c[3]/max*100).toFixed(0)}%"></b></i></span><span class="s">${c[3]}</span></div>`}).join("")}</div></section>` })():""}
+  <div class="grid2">${list("blade","Lame")}${list("bit","Punte")}${list("ratchet","Ratchet")}
+    ${cx?`<div class="panel"><h3>Componenti CX</h3>${["lockchip","overblade","assist"].map(k=>(M[k]||[]).map(([n,s])=>`<div class="rank"><span class="r">${k==="lockchip"?"chip":k==="overblade"?"over":"assist"}</span><span class="nm"><span>${esc(n)}</span></span><span class="s">${s}</span></div>`).join("")).join("")}</div>`:""}
+  </div>`;
+}
+
+// ---------- Import ----------
+function parseMetaText(txt){
+  const L=txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  const map={"LOCK CHIP":"lockchip","RATCHET":"ratchet","BLADE":"blade","OVER BLADE":"overblade","ASSIST BLADE":"assist","BIT":"bit"};
+  const out={blade:[],ratchet:[],bit:[],lockchip:[],overblade:[],assist:[]}; let cur=null; const seen={};
+  for(let i=0;i<L.length;i++){
+    const up=L[i].toUpperCase();
+    if(map[up]){ cur=map[up]; if(seen[cur]) cur="__dup"; else seen[cur]=1; continue }
+    if(/^#\d+/.test(L[i]) && cur && cur!=="__dup"){
+      const name=L[i+1], score=parseFloat(L[i+2]);
+      if(name && !isNaN(score)){ out[cur].push([name,score]); i+=2 }
+    }
+    if(/^Week ID$/i.test(L[i])) out.week=L[i+1];
+    if(/^Start Date$/i.test(L[i])) out.start=L[i+1];
+    if(/^End Date$/i.test(L[i])) out.end=L[i+1];
+    if(/^Event Scanned$/i.test(L[i])) out.events=+L[i+1];
+    if(/^Parts Analyzed$/i.test(L[i])) out.partsAnalyzed=+L[i+1];
+  }
+  return out;
+}
+async function getSample(){ if(!window.claude||!window.claude.use) return null; try{ return await window.claude.use("sample") }catch(e){ return null } }
+function aiErr(e){
+  const c=e&&e.code;
+  if(c==="not_granted"||c==="sampling_disabled"||c==="capability_disabled"||c==="not_declared") return "Claude non è disponibile in questa vista. Puoi comunque usare il deck calcolato qui sopra.";
+  if(c==="rate_limited") return "Troppe richieste ravvicinate. Riprova tra qualche minuto.";
+  if(c==="invalid_json") return "La risposta non era leggibile. Riprova.";
+  if(c==="cancelled") return "";
+  return "Richiesta non riuscita. Riprova.";
+}
+async function importMeta(){
+  const ta=document.getElementById("meta-paste"); const txt=ta.value.trim();
+  const msg={set textContent(v){ metaMsg=v; render() }};
+  if(!txt){ msg.textContent="Incolla prima il testo della pagina."; return }
+  let p=parseMetaText(txt);
+  if(p.blade.length<5||p.bit.length<5){
+    const sample=await getSample(); if(!sample){ msg.textContent="Non riesco a riconoscere il testo incollato."; return }
+    aiBusy=true; msg.textContent="Lo faccio leggere a Claude…";
+    try{
+      p=await sample.json(`Dal testo seguente, copiato dalla pagina delle classifiche Beyblade X di BBX Weekly, estrai le classifiche. Rispondi solo con un oggetto JSON: {"week":string|null,"start":"YYYY-MM-DD"|null,"end":"YYYY-MM-DD"|null,"events":number|null,"blade":[[nome,punteggio]],"ratchet":[[nome,punteggio]],"bit":[[nome,punteggio]],"lockchip":[],"overblade":[],"assist":[]}, nell'ordine della classifica.\n\nTESTO:\n${txt.slice(0,40000)}`,{modelTier:"quick"});
+    }catch(e){ aiBusy=false; msg.textContent=aiErr(e)||"Annullato."; return }
+    aiBusy=false;
+  }
+  if(!Array.isArray(p.blade)||p.blade.length<3){ msg.textContent="Non ho trovato classifiche nel testo."; return }
+  S.meta=Object.assign({source:"BBX Weekly",unit:"score",lockchip:[],overblade:[],assist:[],ratchet:[],bit:[]},p,{week:p.week||"aggiornato",start:p.start||new Date().toISOString().slice(0,10),end:p.end||new Date().toISOString().slice(0,10)});
+  rematchAll(); save(); metaMsg=`Meta aggiornato: ${p.blade.length} lame, ${(p.bit||[]).length} punte, ${(p.ratchet||[]).length} ratchet.`; render();
+}
+// ---------- Browser dell'app Claude (MetaBeys, Challonge) ----------
+const BR="host:claude_browser";
+const MB="https://www.metabeys.com/leaderboard";
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let browserTab=null;
+async function getMcp(){ if(!window.claude||!window.claude.use) return null; try{ return await window.claude.use("mcp") }catch(e){ return null } }
+const resText = r => { const t=(r&&r.content||[]).filter(c=>c&&c.type==="text").map(c=>c.text).join("\n"); return t || (typeof (r&&r.payload)==="string" ? r.payload : "") };
+async function openUrl(mcp,url){
+  if(browserTab){ try{ await mcp.callTool(BR,"navigate",{url,tabId:browserTab},{cache:false}); return }catch(e){ if(e&&e.code!=="tool_error") throw e; browserTab=null } }
+  const r=await mcp.callTool(BR,"preview_start",{url},{cache:false});
+  const m=resText(r).match(/tabId\s+([^\s)]+)\)/); browserTab=m?m[1]:null;
+}
+async function pageText(mcp, ready){
+  let t="";
+  for(let i=0;i<6;i++){
+    await sleep(i?1500:1000);
+    const r=await mcp.callTool(BR,"get_page_text",browserTab?{tabId:browserTab,max_chars:60000}:{max_chars:60000},{cache:false});
+    t=resText(r); if(!ready||ready(t)) return t;
+  }
+  return t;
+}
+let browserDenied=false;
+// Chiede in modo esplicito il permesso di usare il browser dell'app Claude; "denied" se è stato rifiutato in modo permanente
+async function ensureBrowser(){
+  let perm=null; try{ perm=await window.claude.use("permissions") }catch(e){}
+  if(!perm) return "ok";
+  const N="mcp:"+BR; let st=await perm.state(N).catch(()=>"unavailable");
+  if(st==="prompt"){ const r=await perm.request([N]).catch(()=>({})); st=r[N]||st }
+  browserDenied = st==="denied";
+  return st;
+}
+function browserErr(e, where){
+  const c=e&&e.code; const code=c&&c!=="parse"?` (codice: ${c})`:"";
+  if(c==="parse") return `La pagina di ${where} è cambiata e non riesco a leggerla. Usa l'opzione “incollando il testo”.`;
+  if(c==="denied") return "L'accesso al browser per questa app è stato rifiutato in precedenza. Riattivalo con il pulsante “Permessi” qui sotto, poi riprova.";
+  if(c==="server_not_connected"||c==="capability_disabled"||c==="not_granted") return "La lettura automatica funziona solo aprendo l'app dentro l'app Claude per Mac, con l'app aperta e collegata. Qui puoi incollare il testo della pagina."+code;
+  if(c==="not_in_manifest"){ browserDenied=true; return "Il permesso di usare il browser non è attivo per questa app. Riattivalo con il pulsante “Permessi” qui sotto, poi riprova."+code }
+  if(c==="approval_required") return "Serve la tua approvazione per usare il browser: riprova e premi “Consenti” nella finestra che compare."+code;
+  if(c==="cancelled") return "La richiesta di aprire la pagina è stata annullata o è scaduta. Riprova e premi “Consenti” nella finestra che compare nell'app Claude."+code;
+  if(c==="tool_error"){ const m=String(e.message||""); if(/allow|consent|permess|approv|not allowed/i.test(m)) return `Il browser chiede il permesso per questo sito (${where}). Riprova e approvalo quando compare la richiesta.`+code; return `Il browser non ha aperto la pagina: ${m.slice(0,200)}` }
+  if(c==="server_unavailable"||c==="upstream_error") return "Il browser non ha risposto. Controlla che l'app Claude sul Mac sia aperta e riprova."+code;
+  return "Lettura non riuscita. Riprova."+code;
+}
+function parseLeaderboard(t){
+  const L=t.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  let i=L.findIndex(l=>/^#\s*Item/i.test(l)); if(i<0) return {rows:[],total:null};
+  const k=L.findIndex(l=>/^Top-cut appearances$/i.test(l)); const total=k>0?parseInt(L[k-1],10)||null:null;
+  const rows=[];
+  for(i=i+1;i<L.length-2;i++){
+    if(/^Showing/i.test(L[i])) break;
+    if(/^\d+$/.test(L[i]) && !/^\d+$/.test(L[i+1]) && /^\d+$/.test(L[i+2])){ rows.push([L[i+1], +L[i+2]]); i+=2 }
+  }
+  return {rows,total};
+}
+// Classifica combo: rango, lama, "ratchet • punta", apparizioni
+function parseComboBoard(t){
+  const L=t.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  let i=L.findIndex(l=>/^#\s*Item/i.test(l)); if(i<0) return [];
+  const rows=[];
+  for(i=i+1;i<L.length-3;i++){
+    if(/^Showing/i.test(L[i])) break;
+    const m=L[i+2].match(/^(.*?)\s*•\s*(.+)$/);
+    if(/^\d+$/.test(L[i]) && m && /^\d+$/.test(L[i+3])){ rows.push([L[i+1], m[1].trim()||"-", m[2].trim(), +L[i+3]]); i+=3 }
+  }
+  const acc=new Map();
+  for(const [b,r,p,n] of rows){ const k=[canon(b),canon(r),canon(p)].join("|"); const o=acc.get(k); if(o) o[3]+=n; else acc.set(k,[b,r,p,n]) }
+  return [...acc.values()].sort((a,b)=>b[3]-a[3]);
+}
+function mergeRows(rows){
+  const m=new Map();
+  for(const [n,c] of rows){ let k=normKey(n); k=TYPO[k]||k; if(!k) continue; const o=m.get(k); if(o){ o.c+=c; if(c>o.best){ o.best=c; o.n=n } } else m.set(k,{n,c,best:c}) }
+  return [...m.values()].sort((a,b)=>b.c-a.c).map(o=>[o.n,o.c]);
+}
+async function updateFromMetaBeys(){
+  const tf=(document.getElementById("mb-tf")||{}).value||"year";
+  const mcp=await getMcp(); if(!mcp){ metaMsg=browserErr({code:"server_not_connected"}); render(); return }
+  if(await ensureBrowser()==="denied"){ metaMsg=browserErr({code:"denied"}); render(); return }
+  aiBusy=true; metaMsg="Apro MetaBeys…"; render();
+  try{
+    const out={}; let total=null;
+    for(const [k,label] of [["blade","lame"],["ratchet","ratchet"],["bit","punte"]]){
+      metaMsg=`Leggo la classifica ${label}…`; render();
+      await openUrl(mcp,`${MB}?kind=${k}&tf=${tf}`);
+      const t=await pageText(mcp, x=>x.includes("kind="+k) && parseLeaderboard(x).rows.length>2);
+      const p=parseLeaderboard(t); if(p.rows.length<2) throw {code:"parse"};
+      out[k]=mergeRows(p.rows); total=p.total||total;
+    }
+    metaMsg="Leggo le combo più usate…"; render();
+    await openUrl(mcp,`${MB}?kind=combo&tf=${tf}`);
+    const ct=await pageText(mcp, x=>x.includes("kind=combo") && parseComboBoard(x).length>2);
+    let combos=parseComboBoard(ct);
+    // La pagina mostra solo le prime 50 combo: per l'anno tengo l'elenco completo di partenza se è più ricco
+    if(tf==="year" && combos.length < BUILTIN_META.combos.length/2) combos=BUILTIN_META.combos;
+    S.meta={source:"MetaBeys", unit:"count", period:tf, fetchedAt:new Date().toISOString(), appearances:total, ...out, combos};
+    rematchAll(); save();
+    metaMsg=`Aggiornato: ${out.blade.length} lame, ${out.ratchet.length} ratchet, ${out.bit.length} punte, ${combos.length} combo (${PERIOD_LABEL[tf]}).`;
+  }catch(e){ metaMsg=browserErr(e,"MetaBeys") }
+  aiBusy=false; render();
+}
+const CH_RESERVED=new Set(["users","user_session","pricing","search","communities","news","tournaments","events","organizers","settings","dashboard","api","about","contact","privacy","terms","login","signup","bracket_generator","partners","knowledge_base","organized_play","organizedplay","translate","terms_of_service","privacy_policy","comment_threads","tournament","games","it","en","de","es","fr","nl","pl","pt","ro"]);
+function challongeLinks(tree){
+  const out=[]; const seen=new Set(); const re=/link(?: "([^"]*)")? \[ref_\d+\] href="([^"]+)"/g; let m;
+  while((m=re.exec(tree))){
+    let href=m[2]; if(href.startsWith("/")) href="https://challonge.com"+href;
+    const u=href.match(/^https?:\/\/(?:([a-z0-9-]+)\.)?challonge\.com\/(?:[a-z]{2}\/)?([A-Za-z0-9_]+)\/?$/); if(!u) continue;
+    const sub=u[1]&&u[1]!=="www"?u[1]:""; const slug=u[2];
+    if(CH_RESERVED.has(slug.toLowerCase())) continue;
+    const url=`https://${sub?sub+".":""}challonge.com/${slug}`; if(seen.has(url)) continue; seen.add(url);
+    out.push({url,title:(m[1]||"").trim()});
+  }
+  return out;
+}
+async function findMyTournaments(){
+  const u=S.settings.challonge; if(!u) return;
+  const mcp=await getMcp(); if(!mcp){ chMsg=browserErr({code:"server_not_connected"}); render(); return }
+  if(await ensureBrowser()==="denied"){ chMsg=browserErr({code:"denied"}); render(); return }
+  aiBusy=true; chMsg="Apro il tuo profilo Challonge…"; chList=null; render();
+  try{
+    await openUrl(mcp,`https://challonge.com/it/users/${encodeURIComponent(u.toLowerCase())}/tournaments`);
+    await pageText(mcp, x=>x.length>400);
+    const r=await mcp.callTool(BR,"read_page",browserTab?{tabId:browserTab,max_chars:120000}:{max_chars:120000},{cache:false});
+    chList=challongeLinks(resText(r));
+    chMsg=chList.length?`Trovati ${chList.length} tornei nel profilo.`:"Non ho trovato tornei nel profilo. Controlla il nome utente oppure incolla il link di un torneo.";
+  }catch(e){ chMsg=browserErr(e,"Challonge") }
+  aiBusy=false; render();
+}
+async function importFromLink(url){
+  url=String(url||"").trim().replace(/[?#].*$/,"").replace(/\/$/,"");
+  if(!/^https?:\/\/([a-z0-9-]+\.)?challonge\.com\//i.test(url)){ chMsg="Il link deve essere di challonge.com."; render(); return }
+  const mcp=await getMcp(); if(!mcp){ chMsg=browserErr({code:"server_not_connected"}); render(); return }
+  if(await ensureBrowser()==="denied"){ chMsg=browserErr({code:"denied"}); render(); return }
+  aiBusy=true; chMsg="Apro il torneo…"; render();
+  let txt="";
+  try{
+    await openUrl(mcp,url); const a=await pageText(mcp, x=>x.length>600);
+    chMsg="Leggo la classifica finale…"; render();
+    await openUrl(mcp,url+"/standings"); const b=await pageText(mcp, x=>x.length>600);
+    txt=`PAGINA DEL TABELLONE:\n${a.slice(0,30000)}\n\nCLASSIFICA FINALE:\n${b.slice(0,25000)}`;
+    const tl=(b.match(/^Title:\s*(.*)$/m)||[])[1]||"";
+    const P=parseStandingsLines(b.split(/\n/).map(x=>x.trim()).filter(Boolean), S.settings.challonge, tl);
+    if(standingsToForm(P,url)){ aiBusy=false; render(); window.scrollTo({top:0}); return }
+  }catch(e){ aiBusy=false; chMsg=browserErr(e,"Challonge"); render(); return }
+  aiBusy=false;
+  await importChallonge(txt, url);
+}
+
+async function importChallonge(pasted, link){
+  const txt=(pasted!=null?pasted:(document.getElementById("ch-paste").value||"")).trim();
+  if(!txt){ chMsg="Incolla prima il testo del torneo."; render(); return }
+  const sample=await getSample(); if(!sample){ chMsg="Claude non è disponibile in questa vista. Inserisci il torneo a mano qui sotto."; render(); return }
+  aiBusy=true; chMsg="Claude sta leggendo il torneo…"; render();
+  const user=S.settings.challonge||"";
+  try{
+    const r=await sample.json(`Il testo seguente è copiato da una pagina di un torneo Beyblade X su Challonge. Il giocatore che mi interessa ha nome utente o nome visualizzato "${user||"(sconosciuto, deducilo se il testo lo indica, altrimenti lascia vuoti gli incontri)"}". Estrai i suoi dati. Il torneo può avere una fase a gironi seguita da eliminazione diretta: conta le vittorie e le sconfitte di entrambe le fasi. "place" è il piazzamento finale nella fase finale; se il giocatore non è passato ai gironi finali usa null. Rispondi solo con JSON: {"event":string,"date":"YYYY-MM-DD"|null,"place":number|null,"players":number|null,"wins":number,"losses":number,"group":string|null,"group_rank":number|null,"matches":[{"opp":string,"won":boolean,"score":"x-y"}]}. Metti in "matches" solo gli incontri di cui il testo indica l'avversario, con il punteggio dal punto di vista del giocatore; altrimenti lascia la lista vuota.\n\nTESTO:\n${txt.slice(0,60000)}`,{modelTier:"quick"});
+    const ms=Array.isArray(r.matches)?r.matches.map(m=>({opp:String(m.opp||"?"),won:!!m.won,score:String(m.score||"")})):[];
+    const W=Number.isFinite(+r.wins)?+r.wins:ms.filter(m=>m.won).length, L=Number.isFinite(+r.losses)?+r.losses:ms.filter(m=>!m.won).length;
+    // Se gli incontri con avversario non coprono tutto il torneo, si tengono i totali
+    const useMatches = ms.length && ms.length===W+L;
+    // Tengo il deck già inserito nel modulo (per esempio da “Usa nel torneo”)
+    syncFormTop();
+    const keep=form && form.mode!=="edit" ? form.phases : null;
+    const phases = keep && keep.some(p=>(p.combos||[]).some(c=>c&&c.blade)) ? keep.map(p=>({...p, combos:p.combos.map(c=>({...c}))})) : [blankPhase()];
+    if(phases.length===1){ phases[0].wins=W; phases[0].losses=L }
+    form={mode:"import", link:link||"", date:r.date||new Date().toISOString().slice(0,10), event:r.event||"", place:r.place||"", players:r.players||"",
+      notes:r.group?`Girone ${r.group}${r.group_rank?`, ${r.group_rank}°`:""}`:"", matches:useMatches?ms:[], phases};
+    chMsg=(W+L)?`Torneo letto: ${W} vittorie e ${L} sconfitte.${phases.length>1?" Dividile tra i deck che hai usato.":""} Controlla il modulo qui sopra e registra.`:"Torneo letto, ma non ho trovato i tuoi incontri: controlla il nome utente Challonge o inseriscili a mano.";
+    aiBusy=false; render(); window.scrollTo({top:0});
+  }catch(e){ aiBusy=false; chMsg=aiErr(e)||"Annullato."; render() }
+}
+// Tutto quello che Claude deve sapere: formato, collezione, meta, risultati, deck mostrato
+function buildContext(res){
+  const sc=res.sc;
+  const coll=S.parts.map(p=>({categoria:TYPE_LABEL[p.type],nome:p.name,sigla:p.code||undefined,nome_meta:p.metaName||"fuori classifica",tipo:p.kind||undefined,quantita:+p.qty||0,evitare:!!p.avoid,ratchet_integrato:p.type==="blade"?!!p.integrated:undefined,rotazione_sinistra:p.type==="blade"?!!p.left:undefined,note:p.note||undefined,indice:Math.round(sc(p).total)}));
+  const results=S.results.slice(-15).map(r=>({data:r.date,evento:r.event,posizione:placeText(r),partecipanti:r.players,note:r.notes,deck_usati:phasesOf(r).map(ph=>({fase:ph.label,combo:ph.combos,vinti:+ph.wins||0,persi:+ph.losses||0}))}));
+  const ownedBlades=new Set(S.parts.filter(p=>p.type==="blade"&&p.metaName).map(p=>canon(p.metaName)));
+  const metaCombos=(meta().combos||[]).filter(([b])=>ownedBlades.has(canon(b))).slice(0,40);
+  const locked=slotsOf().map((x,i)=>["blade","ratchet","bit"].map(k=>x&&x[k]).filter(Boolean).map(id=>S.parts.find(p=>p.id===id)).filter(Boolean).map(p=>`trottola ${i+1}: ${p.name}`)).flat();
+  const shown=res.decks[viewIdx]?res.decks[viewIdx].combos.map((c,i)=>`trottola ${i+1}: ${c.b.name} ${c.r.id==="int"?"(ratchet integrato)":c.r.name} ${c.t.code||c.t.name}`):[];
+  const M=meta();
+  return `Sei un giocatore competitivo esperto di Beyblade X e aiuti Andrea a preparare i tornei.
+
+Formato: 3 trottole, ogni pezzo (lama, ratchet, punta) può comparire una sola volta nel deck. Gironi a 4 punti, eliminazione diretta a 7 punti. L'ordine delle 3 trottole va dichiarato all'arbitro prima del round, ogni tre lanci si rimescola, tra un match e l'altro si possono cambiare trottole.${S.settings.bitTypeLimit?" Regola extra del torneo: al massimo una punta per tipo (attacco, difesa, resistenza, equilibrio).":""}
+Ha lanciatori a cordicella sia destrorso sia sinistrorso. Non ha un'arena per allenarsi.
+
+COLLEZIONE (usa solo questi pezzi, mai quelli con evitare=true; le lame con ratchet_integrato=true non prendono un ratchet):
+${JSON.stringify(coll)}
+
+META (${M.unit==="count"?`${M.source}, ${PERIOD_LABEL[M.period]||M.period}: numero di apparizioni in top cut, soprattutto tornei in Nord America`:`${M.source||"BBX Weekly"}, ${M.start} → ${M.end}: punteggio, più alto = più vincente`}):
+lame ${JSON.stringify(M.blade)}
+ratchet ${JSON.stringify(M.ratchet)}
+punte ${JSON.stringify(M.bit)}
+combo del meta con le lame che possiede [lama, ratchet, punta, apparizioni]: ${metaCombos.length?JSON.stringify(metaCombos):"nessun dato"}
+Conta come le lame vengono abbinate nel meta, non solo quanto è forte ogni pezzo da solo: per esempio Cobalt Dragoon rende quasi solo con Elevate.
+${locked.length?`Pezzi fissati a mano: ${locked.join("; ")}.`:"Nessun pezzo fissato a mano."}
+
+RISULTATI RECENTI: ${results.length?JSON.stringify(results):"nessuno registrato"}
+ALLENAMENTI (scontri diretti, A è sempre una combo di Andrea; arena "hasbro" = arena Hasbro, poco affidabile e quasi inutile per giudicare le combo di difesa): ${(()=>{ const g=new Map(); (S.trainLog||[]).forEach(e=>{ const k=comboKey({...e.a,mine:true})+"#"+comboKey(e.b)+"#"+e.arena; const o=g.get(k)||{A:comboLabel(e.a),B:(e.b.mine===false?"avversario: ":"")+comboLabel(e.b),arena:e.arena,vinte_A:0,vinte_B:0}; if(e.side==="a") o.vinte_A++; else if(e.side==="b") o.vinte_B++; g.set(k,o) }); const a=[...g.values()].slice(-25); return a.length?JSON.stringify(a):"nessuno" })()}
+
+Deck mostrato ora nell'app: ${shown.join("; ")}.`;
+}
+async function askAI(){
+  const res=buildDecks(); if(res.error) return;
+  const sample=await getSample(); if(!sample){ aiError="Claude non è disponibile in questa vista."; render(); return }
+  aiBusy=true; aiError=""; aiResult=null; chat=[]; render();
+  const prompt=buildContext(res)+`
+
+Valuta se il deck mostrato è la scelta migliore, considerando gli accoppiamenti tra lama, ratchet e punta e la copertura contro attacco, difesa e resistenza. Scrivi in italiano, in modo diretto, senza trattini lunghi. Rispondi solo con JSON:
+{"deck":[{"lama":string,"ratchet":string,"punta":string,"ruolo":string,"motivo":string}],"ordine":string,"consigli":[string],"acquisti":[string]}
+Per "punta" usa la sigla della collezione; per una lama con ratchet integrato scrivi "integrato" come ratchet. "acquisti": al massimo 3 pezzi da comprare che alzerebbero di più il livello del deck, con il perché.`;
+  try{ aiResult=await sample.json(prompt,{modelTier:"default"}) }catch(e){ aiError=aiErr(e) }
+  aiBusy=false; render();
+}
+
+// ---------- Conversazione con Claude ----------
+let chat=[];            // [{role:"user"|"assistant", content}]
+let chatBusy=false, chatLive="", chatCtl=null, chatErr="", chatDraft="";
+const CHAT_RULES=`Rispondi in italiano, in modo breve e concreto, come in una chat: frasi semplici, al massimo un elenco corto se serve. Niente tabelle, niente trattini lunghi, niente formule del tipo "non X, ma Y". Se proponi pezzi, usa solo quelli della collezione e i loro nomi; se un pezzo manca, dillo chiaramente.
+Se Andrea ti chiede di cambiare il deck nell'app, usa lo strumento fissa_pezzi (e sblocca_tutto per ripartire da zero): l'app ricalcola il resto del deck da sola. Poi usa leggi_deck per vedere il risultato e raccontaglielo.`;
+function findPart(type, q){
+  q=String(q||"").trim().toLowerCase(); if(!q) return null;
+  const list=S.parts.filter(p=>p.type===type);
+  return list.find(p=>[p.name,p.code,p.metaName].some(v=>v&&v.toLowerCase()===q)) || list.find(p=>[p.name,p.metaName].some(v=>v&&v.toLowerCase().includes(q))) || null;
+}
+const CHAT_TOOLS=[
+  {name:"leggi_deck", description:"Restituisce il deck mostrato ora nell'app, trottola per trottola, con i pezzi fissati e l'indice.",
+   execute(){ const r=buildDecks(); if(r.error) return {errore:"nessun deck valido con i vincoli attuali"}; const d=r.decks[viewIdx]; const sl=slotsOf();
+     return {indice:+d.score.toFixed(1), trottole:d.combos.map((c,i)=>({trottola:i+1, lama:c.b.name, ratchet:c.r.id==="int"?"integrato":c.r.name, punta:c.t.code||c.t.name, fissati:Object.keys(sl[i]||{}), note:c.why}))} }},
+  {name:"fissa_pezzi", description:"Fissa uno o più pezzi in una trottola (1, 2 o 3) del deck nell'app; i pezzi non fissati vengono ricalcolati. Usa i nomi della collezione. Restituisce il nuovo deck.",
+   inputSchema:{type:"object", properties:{trottola:{type:"integer", minimum:1, maximum:3}, lama:{type:"string"}, ratchet:{type:"string"}, punta:{type:"string"}}, required:["trottola"]},
+   execute(input){
+     const i=Math.round(+input.trottola)-1; if(!(i>=0&&i<3)) throw new Error("trottola deve essere 1, 2 o 3");
+     const sl=slotsOf().map(x=>({...(x||{})}));
+     for(const [k,type] of [["lama","blade"],["ratchet","ratchet"],["punta","bit"]]){
+       if(input[k]==null || input[k]==="") continue;
+       const p=findPart(type,input[k]); if(!p) throw new Error(`${input[k]} non è nella collezione`);
+       if(p.avoid) throw new Error(`${p.name} è segnato come da non usare`);
+       sl.forEach((x,j)=>{ if(j!==i && x[type]===p.id) delete x[type] }); sl[i][type]=p.id;
+       if(type==="blade" && p.integrated) delete sl[i].ratchet;
+     }
+     S.settings.slots=sl; viewIdx=0; aiResult=null; save(); render();
+     return CHAT_TOOLS[0].execute();
+   }},
+  {name:"sblocca_tutto", description:"Toglie tutti i pezzi fissati, così l'app torna alla proposta migliore. Restituisce il nuovo deck.",
+   execute(){ S.settings.slots=[{},{},{}]; viewIdx=0; save(); render(); return CHAT_TOOLS[0].execute() }}
+];
+async function sendChat(){
+  const box=document.getElementById("ai-q"); const q=(box&&box.value||"").trim(); if(!q||chatBusy) return;
+  const res=buildDecks(); if(res.error){ chatErr="Prima serve un deck valido."; render(); return }
+  const sample=await getSample(); if(!sample){ chatErr="Claude non è disponibile in questa vista."; render(); return }
+  chatDraft=""; chat.push({role:"user", content:q}); chat=chat.slice(-14); if(chat[0].role!=="user") chat.shift();
+  chatBusy=true; chatLive=""; chatErr=""; render();
+  const first=buildContext(res)+"\n\n"+CHAT_RULES+(aiResult?`\n\nIl tuo parere precedente su questo deck era: ${JSON.stringify(aiResult)}`:"");
+  chatCtl=new AbortController();
+  const lim=await sample.limits().catch(()=>null);
+  const opts={cache:false, signal:chatCtl.signal, onText:({text})=>{ chatLive=text; const el=document.getElementById("chat-live"); if(el) el.innerHTML=fmt(text) }};
+  if(lim && lim.tools) opts.tools=CHAT_TOOLS.map(t=>({...t})).map(t=>{ if(!t.inputSchema) delete t.inputSchema; return t });
+  if(opts.tools) delete opts.cache;
+  try{
+    const {text}=await sample([{role:"user",content:first}, ...chat], opts);
+    chat.push({role:"assistant", content:text});
+  }catch(e){
+    if(e && e.text) chat.push({role:"assistant", content:e.text});
+    if(!(e && e.code==="cancelled")) chatErr=aiErr(e)||"Risposta interrotta.";
+  }
+  chatBusy=false; chatLive=""; chatCtl=null; render();
+  const nb=document.getElementById("ai-q"); if(nb) nb.focus();
+}
+const fmt = t => esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/\n/g,"<br>");
+function chatView(){
+  return `<div class="ai-out" id="chat">
+    <h3>Parla con Claude</h3>
+    ${chat.length?`<div class="stack">${chat.map(m=>`<div class="msg ${m.role}"><span class="small muted">${m.role==="user"?"Tu":"Claude"}</span><div>${fmt(m.content)}</div></div>`).join("")}</div>`:`<p class="small muted">Chiedi spiegazioni sul deck, alternative o cosa comprare. Se gli chiedi di cambiare un pezzo, Claude lo fissa nel deck qui sopra.</p>`}
+    ${chatBusy?`<div class="msg assistant"><span class="small muted">Claude</span><div id="chat-live">${chatLive?fmt(chatLive):"Sto pensando…"}</div></div>`:""}
+    ${chatErr?`<p class="note">${esc(chatErr)}</p>`:""}
+    <form id="chat-form" class="stack">
+      <textarea id="ai-q" placeholder="es. perché Wand Wizard con la Point? Metti Cobalt Dragoon nella trottola 2" style="min-height:70px;font-family:var(--f-body);font-size:14px">${esc(chatDraft)}</textarea>
+      <div class="row"><button class="btn primary" type="submit" ${chatBusy?"disabled":""}>Invia</button>${chatBusy?`<button class="btn" type="button" data-act="chat-stop">Ferma</button>`:""}${chat.length&&!chatBusy?`<button class="btn ghost" type="button" data-act="chat-clear">Nuova conversazione</button>`:""}</div>
+    </form>
+  </div>`;
+}
+
+// ---------- Versione Android (APK) ----------
+// Nell'APK non c'è Claude: niente chat né parere, ma il meta e Challonge si leggono direttamente (richieste native, senza i blocchi del browser).
+const STANDALONE = !!window.DECKLAB_STANDALONE;
+const MB_EVENTS = "https://beydecks-production.up.railway.app/api/events";
+const NATIVE_PERIODS = [["d60","ultimi 60 giorni",60],["d90","ultimi 90 giorni",90],["d180","ultimi 6 mesi",180],["year","ultimo anno",365],["all","tutto lo storico",0]];
+NATIVE_PERIODS.forEach(([k,l])=>{ PERIOD_LABEL[k]=l });
+// Classifiche calcolate dai dati grezzi dei tornei MetaBeys: apparizioni in top cut per lama, ratchet, punta e combo
+function metaFromEvents(events, days){
+  const from = days ? new Date(Date.now()-days*864e5).toISOString().slice(0,16) : "";
+  const ev = events.filter(e=>e && e.topCut && e.topCut.length && (!from || String(e.startTime||"")>=from));
+  const disp=new Map(); const name=(k,s)=>{ if(!disp.has(k)) disp.set(k,String(s).trim()); return disp.get(k) };
+  const cnt={blade:new Map(), ratchet:new Map(), bit:new Map()}, combos=new Map(); let total=0;
+  const add=(m,k)=>m.set(k,(m.get(k)||0)+1);
+  for(const e of ev) for(const pl of e.topCut) for(const c of (pl.combos||[])){
+    if(!c || !c.blade) continue; total++;
+    const kb=canon(c.blade), kr=canon(c.ratchet||"-"), kt=canon(c.bit||"");
+    name("b:"+kb,c.blade); if(kr) name("r:"+kr,c.ratchet); if(kt) name("t:"+kt,c.bit);
+    add(cnt.blade,kb); if(kr) add(cnt.ratchet,kr); if(kt) add(cnt.bit,kt);
+    if(kt) add(combos,[kb,kr,kt].join("|"));
+  }
+  const list=(m,p)=>[...m.entries()].sort((a,b)=>b[1]-a[1]).map(([k,n])=>[disp.get(p+":"+k)||k,n]);
+  return {source:"MetaBeys", unit:"count", fetchedAt:new Date().toISOString(), appearances:total, events:ev.length,
+    blade:list(cnt.blade,"b"), ratchet:list(cnt.ratchet,"r"), bit:list(cnt.bit,"t"),
+    combos:[...combos.entries()].filter(([,n])=>n>=2).sort((a,b)=>b[1]-a[1]).map(([k,n])=>{ const [b,r,t]=k.split("|"); return [disp.get("b:"+b)||b, r?(disp.get("r:"+r)||r):"-", disp.get("t:"+t)||t, n] })};
+}
+async function updateMetaNative(){
+  const sel=document.getElementById("mb-tf"); const k=(sel&&sel.value)||"d180"; const per=NATIVE_PERIODS.find(x=>x[0]===k)||NATIVE_PERIODS[2];
+  aiBusy=true; metaMsg="Scarico i tornei da MetaBeys…"; render();
+  try{
+    const r=await fetch(MB_EVENTS); if(!r.ok) throw new Error("HTTP "+r.status);
+    const events=await r.json(); if(!Array.isArray(events)) throw new Error("formato inatteso");
+    const M=metaFromEvents(events, per[2]); M.period=per[0];
+    if(M.blade.length<3) throw new Error(`pochi dati nel periodo scelto (${M.events} tornei)`);
+    S.meta=M; rematchAll(); save();
+    metaMsg=`Aggiornato: ${M.events} tornei, ${M.appearances} apparizioni in top cut (${per[1]}).`;
+  }catch(e){ metaMsg="Aggiornamento non riuscito: "+(e&&e.message||"errore di rete")+". Controlla la connessione e riprova." }
+  aiBusy=false; render();
+}
+let metaAuto=false;
+// All'apertura dell'APK il meta si aggiorna da solo se ha più di 3 giorni
+function autoMetaNative(){
+  if(!STANDALONE || metaAuto) return; metaAuto=true;
+  const M=S.meta; const age=M&&M.fetchedAt?(Date.now()-new Date(M.fetchedAt).getTime())/864e5:999;
+  if(age>3) setTimeout(()=>{ if(!aiBusy) updateMetaNative() }, 1500);
+}
+
+// ---------- Lettura delle classifiche di Challonge (senza Claude) ----------
+// L = righe di testo della pagina "Classifiche" di un torneo; user = nome utente Challonge
+const EN_MONTHS={january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12};
+function parseStandingsLines(L, user, title){
+  // le celle possono arrivare su righe separate o sulla stessa riga separate da tabulazioni
+  L=L.flatMap(x=>String(x).split(/\t+/)).map(x=>x.replace(/\u00a0/g," ").trim()).filter(Boolean);
+  const u=String(user||"").toLowerCase(); const isU=s=>{ const x=String(s||"").toLowerCase().replace(/^\(|\)$/g,"").trim(); return u && x===u };
+  const out={event:String(title||"").replace(/\s+/g," ").replace(/\s*[-–]\s*(Classifiche|Standings|Challonge)[\s\S]*$/i,"").trim(), date:null, players:null, final:null, group:null};
+  const all=L.join("\n"); const pm=all.match(/Giocatori\s+(\d+)/); if(pm) out.players=+pm[1];
+  for(let i=0;i<L.length;i++){ const m=L[i].match(/^([A-Z][a-z]+) (\d{1,2}), (\d{4})/); if(m && EN_MONTHS[m[1].toLowerCase()]){ out.date=`${m[3]}-${String(EN_MONTHS[m[1].toLowerCase()]).padStart(2,"0")}-${m[2].padStart(2,"0")}`; break } }
+  // fase finale: Rango / Nome partecipante / Utente Challonge / Storia Partita, poi righe rango, nome, utente, W/L
+  let k=-1; for(let i=0;i<L.length-1;i++) if(L[i]==="Rango" && /^Nome partecipante/.test(L[i+1])){ k=i; break }
+  const gStart=L.findIndex((x,i)=>i>k && /^Gruppo /.test(x));
+  if(k>=0){
+    const end=gStart>k?gStart:L.length; let i=k+1; while(i<end && !/^\d+$/.test(L[i])) i++;
+    const rows=[];
+    while(i<end){ if(/^\d+$/.test(L[i])){ const r={rank:+L[i], name:L[i+1], user:L[i+2], w:0, l:0}; let j=i+3; while(j<end && /^[WL]$/.test(L[j])){ L[j]==="W"?r.w++:r.l++; j++ } rows.push(r); i=j } else i++ }
+    const me=rows.find(r=>isU(r.name)||isU(r.user)); if(me) out.final={...me, size:rows.length}; else if(rows.length) out.finalSize=rows.length;
+  }
+  // gironi: cerco il mio nome nella sezione di ogni gruppo
+  for(let i=0;i<L.length;i++){
+    if(!/^Gruppo /.test(L[i])) continue;
+    const g=L[i].replace(/^Gruppo\s*/,""); let end=L.findIndex((x,j)=>j>i && /^Gruppo /.test(x)); if(end<0) end=L.length;
+    const sec=L.slice(i,end);
+    const ni=sec.findIndex(x=>isU(x) || isU(x.replace(/^Avanzate\s+/,"").replace(/\s*\(.*\)$/,"")) || (x.match(/\(([^)]+)\)$/)&&isU(x.match(/\(([^)]+)\)$/)[1])));
+    if(ni<0) continue;
+    let rank=null; for(let j=ni-1;j>=0;j--){ if(/^\d+$/.test(sec[j])){ rank=+sec[j]; break } }
+    let wl=null; for(let j=ni;j<sec.length;j++){ const m=sec[j].match(/^(\d+) - (\d+) - (\d+)$/); if(m){ wl=[+m[1],+m[2],+m[3]]; break } }
+    const size=sec.filter(x=>/^\d+ - \d+ - \d+$/.test(x)).length;
+    out.group={name:g, rank, size, w:wl?wl[0]:0, l:wl?wl[1]:0};
+    break;
+  }
+  return out;
+}
+const RANK_EXIT = r => r===1?"winner": r===2?"final": r<=4?"semi": r<=8?"quarti": r<=16?"ottavi": r<=32?"sedicesimi": "exact";
+// Dal risultato letto al modulo del torneo, tenendo il deck già inserito
+function standingsToForm(P, link){
+  if(!P.group && !P.final) return false;
+  syncFormTop();
+  const keep=form && form.mode!=="edit" ? form.phases : null;
+  const keepCombos = keep && keep.some(p=>(p.combos||[]).some(c=>c&&c.blade)) ? keep[0].combos : null;
+  const phases=[];
+  if(P.group) phases.push({...blankPhase("Girone", keepCombos), stage:"girone", wins:P.group.w, losses:P.group.l});
+  if(P.final) phases.push({...blankPhase("Eliminazione diretta", keepCombos), stage:"ko", wins:P.final.w, losses:P.final.l});
+  const exit = P.final ? RANK_EXIT(P.final.rank) : "girone";
+  form={mode:"import", link:link||"", date:P.date||new Date().toISOString().slice(0,10), event:P.event||"", players:P.players||"",
+    exit, place: P.final ? (exit==="exact"?String(P.final.rank):(exitInfo(exit)||[])[2]) : "", topCut:(P.final&&P.final.size)||P.finalSize||16,
+    notes: P.group ? `Girone ${P.group.name}${P.group.rank?`, ${P.group.rank}°${P.group.size?` su ${P.group.size}`:""}`:""}` : "", matches:[], phases};
+  const wl=phases.reduce((a,p)=>[a[0]+p.wins,a[1]+p.losses],[0,0]);
+  chMsg=`Torneo letto: ${wl[0]} vittorie e ${wl[1]} sconfitte${P.final?`, fase finale ${P.final.rank}°`:", fuori ai gironi"}. Aggiungi il deck usato e registra.`;
+  return true;
+}
+// Testo "visibile" di una pagina HTML: la monto nascosta per avere le righe come le vede il browser
+function htmlLines(html){
+  const box=document.createElement("div"); box.style.cssText="position:absolute;left:-99999px;top:0;width:1200px";
+  box.innerHTML=String(html).replace(/<script[\s\S]*?<\/script>/gi,"").replace(/<style[\s\S]*?<\/style>/gi,"").replace(/<img[^>]*>/gi,"").replace(/<iframe[\s\S]*?<\/iframe>/gi,"");
+  document.body.appendChild(box); const t=box.innerText; box.remove();
+  const tm=String(html).match(/<title>([^<]*)<\/title>/i);
+  return {lines:t.split(/\n/).map(s=>s.trim()).filter(Boolean), title:tm?tm[1].trim():""};
+}
+async function findMyTournamentsNative(){
+  const u=S.settings.challonge; if(!u) return;
+  aiBusy=true; chMsg="Cerco i tuoi tornei su Challonge…"; chList=null; render();
+  try{
+    const r=await fetch(`https://challonge.com/it/users/${encodeURIComponent(u.toLowerCase())}/tournaments`); if(!r.ok) throw new Error("HTTP "+r.status);
+    const html=await r.text(); const out=[]; const seen=new Set();
+    for(const m of html.matchAll(/<a[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)){
+      let href=m[1]; if(href.startsWith("/")) href="https://challonge.com"+href;
+      const x=href.match(/^https?:\/\/(?:([a-z0-9-]+)\.)?challonge\.com\/(?:[a-z]{2}\/)?([A-Za-z0-9_]+)\/?$/); if(!x) continue;
+      const sub=x[1]&&x[1]!=="www"?x[1]:""; if(sub==="kb") continue; if(CH_RESERVED.has(x[2].toLowerCase())) continue;
+      const url=`https://${sub?sub+".":""}challonge.com/${x[2]}`; if(seen.has(url)) continue;
+      const title=m[2].replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim(); if(!title) continue;
+      seen.add(url); out.push({url,title});
+    }
+    chList=out; chMsg=out.length?`Trovati ${out.length} tornei nel profilo.`:"Non ho trovato tornei nel profilo. Controlla il nome utente oppure incolla il link di un torneo.";
+  }catch(e){ chMsg="Non riesco a raggiungere Challonge: "+(e&&e.message||"errore di rete")+"." }
+  aiBusy=false; render();
+}
+async function importFromLinkNative(url){
+  url=String(url||"").trim().replace(/[?#].*$/,"").replace(/\/$/,"").replace(/\/standings$/,"");
+  if(!/^https?:\/\/([a-z0-9-]+\.)?challonge\.com\//i.test(url)){ chMsg="Il link deve essere di challonge.com."; render(); return }
+  aiBusy=true; chMsg="Leggo la classifica del torneo…"; render();
+  try{
+    const r=await fetch(url+"/standings"); if(!r.ok) throw new Error("HTTP "+r.status);
+    const {lines,title}=htmlLines(await r.text());
+    const P=parseStandingsLines(lines, S.settings.challonge, title);
+    if(!standingsToForm(P,url)) chMsg=`Ho letto il torneo, ma non trovo “${S.settings.challonge||"il tuo nome"}” tra i partecipanti. Controlla il nome utente Challonge.`;
+  }catch(e){ chMsg="Non riesco a leggere il torneo: "+(e&&e.message||"errore di rete")+"." }
+  aiBusy=false; render(); window.scrollTo({top:0});
+}
+
+// ---------- Backup dei dati ----------
+function vBackup(){
+  return `<section class="panel"><h3>Backup dei dati</h3>
+    <p class="small muted">Esporta tutto in un file, per conservarlo o portarlo su un altro dispositivo (anche tra l'app Android e quella dentro Claude). L'importazione unisce il file con i dati che hai già, tenendo per ogni voce la modifica più recente.</p>
+    <div class="row"><button class="btn" data-act="bk-export">Esporta i dati</button><label class="btn" for="bk-file">Importa da file</label><input type="file" id="bk-file" accept="application/json,.json" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></div>
+  </section>`;
+}
+async function exportData(){
+  const name=`deck-lab-bbx-${new Date().toISOString().slice(0,10)}.json`;
+  const data=JSON.stringify({app:"deck-lab-bbx", v:1, exportedAt:new Date().toISOString(), state:S});
+  try{
+    if(STANDALONE && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem){
+      const {Filesystem, Share}=window.Capacitor.Plugins;
+      const w=await Filesystem.writeFile({path:name, data, directory:"CACHE", encoding:"utf8"});
+      await Share.share({title:"Backup Deck Lab BBX", url:w.uri, dialogTitle:"Salva o invia il backup"});
+      return;
+    }
+    const dl=window.claude && await window.claude.use("downloads").catch(()=>null);
+    if(dl){ await dl.save({filename:name, data}); toast("Backup salvato"); return }
+    await navigator.clipboard.writeText(data); toast("Backup copiato negli appunti");
+  }catch(e){ if(!(e && (e.code==="declined" || /cancel/i.test(String(e.message||""))))) toast("Esportazione non riuscita") }
+}
+function importData(file){
+  const fr=new FileReader();
+  fr.onload=()=>{ try{
+      const o=JSON.parse(String(fr.result)); const st=o && (o.state||o);
+      if(!st || !Array.isArray(st.parts)) throw new Error("file non valido");
+      S=mergeStates(normState(JSON.parse(JSON.stringify(st))), S); rematchAll(); save(); render();
+      toast(`Importati ${st.parts.length} pezzi e ${(st.results||[]).length} tornei`);
+    }catch(e){ toast("Questo file non è un backup di Deck Lab BBX") } };
+  fr.readAsText(file);
+}
+
+// ---------- Eventi ----------
+function toast(t){ const el=document.getElementById("toast"); el.textContent=t; el.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(()=>el.hidden=true,2600) }
+const partById=id=>S.parts.find(p=>p.id===id);
+
+function setMenu(open){ const m=document.getElementById("menu"), bt=document.getElementById("burger"); m.hidden=!open; bt.setAttribute("aria-expanded",String(open)); if(open){ const cur=m.querySelector('[aria-selected="true"]')||m.querySelector("button"); cur&&cur.focus() } }
+document.getElementById("burger").addEventListener("click",()=>setMenu(document.getElementById("menu").hidden));
+document.querySelector("nav").addEventListener("click",e=>{const b=e.target.closest("button[data-tab]"); if(!b) return; tab=b.dataset.tab; aiError=""; setMenu(false); render(); window.scrollTo({top:0})});
+document.addEventListener("click",e=>{ if(!document.getElementById("menu").hidden && !e.target.closest("header")) setMenu(false) });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape" && !document.getElementById("menu").hidden){ setMenu(false); document.getElementById("burger").focus() } });
+document.getElementById("main").addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset.deckname){ const d=S.decks.find(x=>x.id===t.dataset.deckname); if(d){ d.name=t.value.trim()||d.name; save(); toast("Nome del deck salvato") } return }
+  if(t.id==="bk-file"){ if(t.files&&t.files[0]) importData(t.files[0]); t.value=""; return }
+  if(trainChange(t)) return;
+  if(edChange(t)) return;
+  if(liveChange(t)) return;
+  if(t.dataset.f && t.dataset.id){ const p=partById(t.dataset.id); if(!p) return;
+    if(["avoid","integrated","left"].includes(t.dataset.f)) p[t.dataset.f]=t.checked; else if(t.dataset.f==="qty") p.qty=Math.max(0,+t.value||0); else p[t.dataset.f]=t.value.trim();
+    save(); render(); return }
+  if(t.id==="rule-bit"){ S.settings.bitTypeLimit=t.checked; aiResult=null; save(); render() }
+  if(t.id==="pw"){ S.settings.personalWeight=+t.value; save(); render() }
+  if(t.id==="ch-user"){ S.settings.challonge=t.value.trim(); save(); render() }
+  if(t.dataset.slot!=null && t.dataset.stype){ const sl=slotsOf().map(x=>({...(x||{})})); const i=+t.dataset.slot, k=t.dataset.stype;
+    // lo stesso pezzo non può stare in due trottole
+    sl.forEach((x,j)=>{ if(j!==i && x[k]===t.value) delete x[k] });
+    // chi resta nella trottola senza essere fissato viene ricalcolato
+    sl[i][k]=t.value; const part=S.parts.find(p=>p.id===t.value);
+    if(k==="blade" && part && part.integrated) delete sl[i].ratchet;
+    S.settings.slots=sl; viewIdx=0; aiResult=null; save(); render() }
+  // Modulo torneo: i campi delle fasi aggiornano la bozza senza ridisegnare
+  if(form && t.dataset.ph!=null){ const ph=form.phases[+t.dataset.ph]; if(!ph) return;
+    if(t.dataset.cf){ ph.combos[+t.dataset.cj]=Object.assign({}, ph.combos[+t.dataset.cj], {[t.dataset.cf]:t.value}) }
+    else if(t.dataset.pf){ ph[t.dataset.pf]=t.dataset.pf==="label"?t.value:(t.value===""?"":Math.max(0,+t.value||0)) }
+    return }
+  if(form && t.dataset.fill!=null && t.value){ syncFormTop(); const ph=form.phases[+t.dataset.fill];
+    const d = t.value==="best" ? (buildDecks().decks||[])[0] : S.decks.find(x=>x.id===t.value);
+    if(ph && d){ ph.combos=deckCombos(d) } render() }
+});
+document.getElementById("main").addEventListener("input",e=>{ if(e.target.id==="ai-q") chatDraft=e.target.value; if(e.target.id==="pw"){ const v=document.getElementById("pw-val"); if(v) v.textContent=e.target.value+"%" } });
+document.getElementById("main").addEventListener("keydown",e=>{ if(e.target.id==="ai-q" && e.key==="Enter" && (e.metaKey||e.ctrlKey)){ e.preventDefault(); sendChat() } });
+document.getElementById("main").addEventListener("submit",e=>{
+  e.preventDefault();
+  if(e.target.id==="chat-form"){ sendChat(); return }
+  if(e.target.id==="add-part"){
+    const type=document.getElementById("np-type").value, name=document.getElementById("np-name").value.trim(), code=document.getElementById("np-code").value.trim();
+    if(!name) return;
+    const existing=S.parts.find(p=>p.type===type && p.name.toLowerCase()===name.toLowerCase());
+    if(existing){ existing.qty=(+existing.qty||0)+1; toast(`${name}: ora ne hai ${existing.qty}`) }
+    else { const names=(meta()[type]||[]).map(x=>x[0]); const m=names.find(n=>n.toLowerCase()===name.toLowerCase())||"";
+      S.parts.push({id:uid(),type,name,code:type==="bit"?code:"",metaName:m,kind:"",qty:1,avoid:false,note:""}); toast(`${TYPE_LABEL[type]} aggiunta: ${name}`) }
+    save(); render(); return;
+  }
+  if(e.target.id==="res-form"){
+    syncFormTop(); const f=form||newForm();
+    const phases=f.phases.map((p,i)=>({label:(p.label||"").trim()||(f.phases.length>1?`Deck ${i+1}`:"Tutto il torneo"), combos:[0,1,2].map(j=>{const c=(p.combos||[])[j]||{}; return {blade:c.blade||"",ratchet:c.ratchet||"",bit:c.bit||""}}), wins:+p.wins||0, losses:+p.losses||0, ...(p.stage?{stage:p.stage}:{})}));
+    const r={id:f.id||uid(), link:f.link||"", date:f.date, event:(f.event||"").trim(), place:f.place, exit:f.exit||(f.place?"exact":""), ...(f.topCut?{topCut:f.topCut}:{}), players:f.players, notes:(f.notes||"").trim(), matches:f.matches||[], phases};
+    if(!r.event){ toast("Scrivi il nome dell'evento"); return }
+    if(r.exit && r.exit!=="exact" && !(f.place && /^\d+$/.test(f.place) && r.exit==="exact")) applyExit(r);
+    if(f.mode==="edit"){ const i=S.results.findIndex(x=>x.id===r.id); if(i>=0) S.results[i]=r; else S.results.push(r) } else S.results.push(r);
+    form=null; save(); render(); toast(f.mode==="edit"?"Modifiche salvate":"Torneo registrato");
+  }
+});
+document.getElementById("main").addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]"); if(!b) return; const a=b.dataset.act;
+  if(a==="open-perms"){ (async()=>{ try{ const perm=await window.claude.use("permissions"); await perm.manage(); const st=await perm.state("mcp:"+BR); browserDenied=st==="denied"; if(!browserDenied){ chMsg=chMsg&&"Permesso aggiornato: riprova."; metaMsg=metaMsg&&"Permesso aggiornato: riprova." } }catch(e){ toast("Apri il menu dell'app (in alto), poi Permessi") } render() })(); return }
+  if(trainClick(a,b)) return;
+  if(a==="go-builder"){ tab="deck"; render(); window.scrollTo({top:0}); return }
+  if(a==="fold"){ fold[b.dataset.key]=!fold[b.dataset.key]; try{ localStorage.setItem("decklab-fold",JSON.stringify(fold)) }catch(e){} render(); return }
+  if(a==="hist-toggle"){ histOpen=histOpen===b.dataset.id?null:b.dataset.id; edConfirm=""; render(); return }
+  if(a==="hist-del-ask"){ edConfirm="r:"+b.dataset.id; render(); return }
+  if(a==="hist-nodel"){ edConfirm=""; render(); return }
+  if(edClick(a,b)) return;
+  if(a.startsWith("lv-")){ liveClick(a,b); return }
+  if(a==="del-part"){ S.parts=S.parts.filter(p=>p.id!==b.dataset.id); save(); render() }
+  if(a==="save-deck"){ const d=(window.__decks||[])[+b.dataset.i]; if(!d) return;
+    S.decks.unshift({id:uid(),name:`${d.combos.map(c=>c.b.name.split(" ")[0]).join(" / ")} · ${new Date().toLocaleDateString("it-IT")}`,date:new Date().toISOString().slice(0,10),score:d.score,combos:d.combos.map(c=>({blade:c.b.name,ratchet:c.r.id==="int"?"":c.r.name,bit:c.t.name,bitCode:c.t.code||""}))});
+    save(); render(); toast("Deck salvato nella sezione Deck") }
+  if(a==="chat-stop"){ if(chatCtl) chatCtl.abort() }
+  if(a==="chat-clear"){ chat=[]; chatErr=""; render() }
+  if(a==="prev-deck"){ viewIdx=Math.max(0,viewIdx-1); aiResult=null; render() }
+  if(a==="next-deck"){ viewIdx++; aiResult=null; render() }
+  if(a==="show-deck"){ viewIdx=+b.dataset.i; aiResult=null; render(); window.scrollTo({top:0}) }
+  if(a==="unpin"){ const sl=slotsOf().map(x=>({...(x||{})})); delete sl[+b.dataset.slot][b.dataset.stype]; S.settings.slots=sl; viewIdx=0; save(); render() }
+  if(a==="unpin-all"){ S.settings.slots=[{},{},{}]; viewIdx=0; save(); render() }
+  if(a==="use-deck"||a==="use-saved"){
+    const d = a==="use-deck" ? (window.__decks||[])[+b.dataset.i] : S.decks.find(x=>x.id===b.dataset.id); if(!d) return;
+    if(S.live){ tab="tornei"; liveSetDeck(deckCombos(d)); window.scrollTo({top:0}); return }
+    if(!form || form.mode==="edit") form=newForm();
+    form.phases[form.phases.length-1].combos=deckCombos(d);
+    tab="tornei"; render(); window.scrollTo({top:0}); toast("Deck inserito nel modulo del torneo") }
+  if(a==="ph-add"){ syncFormTop(); if(!form) form=newForm(); const last=form.phases[form.phases.length-1];
+    if(form.phases.length===1 && last.label==="Tutto il torneo") last.label="Prima del cambio";
+    form.phases.push(blankPhase(`Dopo il cambio${form.phases.length>1?" "+form.phases.length:""}`, last.combos)); render() }
+  if(a==="ph-del"){ syncFormTop(); form.phases.splice(+b.dataset.i,1); if(form.phases.length===1) form.phases[0].label="Tutto il torneo"; render() }
+  if(a==="del-deck"){ S.decks=S.decks.filter(d=>d.id!==b.dataset.id); save(); render() }
+  if(a==="ask-ai") askAI();
+  if(a==="import-meta") importMeta();
+  if(a==="reset-meta"){ S.meta=null; rematchAll(); metaMsg=""; save(); render(); toast("Ripristinati i dati di partenza") }
+  if(a==="mb-update") updateFromMetaBeys();
+  if(a==="import-ch") importChallonge();
+  if(a==="ch-find"){ STANDALONE?findMyTournamentsNative():findMyTournaments() }
+  if(a==="ch-link"){ const v=(document.getElementById("ch-link")||{}).value; STANDALONE?importFromLinkNative(v):importFromLink(v) }
+  if(a==="ch-import"){ const t=(chList||[])[+b.dataset.i]; if(t) (STANDALONE?importFromLinkNative:importFromLink)(t.url) }
+  if(a==="mb-native") updateMetaNative();
+  if(a==="bk-export") exportData();
+  if(a==="cancel-res"){ form=null; chMsg=""; render() }
+  if(a==="edit-res"){ const r=S.results.find(x=>x.id===b.dataset.id); if(!r) return;
+    if((r.phases||[]).some(p=>(p.matches||[]).length)){ histEdit=r.id; ed=null; edDeck=null; render(); window.scrollTo({top:0}); return }
+    const c=JSON.parse(JSON.stringify(r));
+    form={mode:"edit", ...c, phases:JSON.parse(JSON.stringify(phasesOf(r)))}; render(); window.scrollTo({top:0}) }
+  if(a==="del-res"){ S.results=S.results.filter(r=>r.id!==b.dataset.id); edConfirm=""; histOpen=null; save(); render(); toast("Torneo eliminato") }
+});
+boot();
+</script>

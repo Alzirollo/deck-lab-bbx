@@ -1,0 +1,57 @@
+name: Costruisci APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Installa le dipendenze
+        run: npm ci
+
+      - name: Prepara la pagina e il progetto Android
+        run: npm run sync
+
+      - name: Costruisci l'APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Rinomina l'APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk deck-lab-bbx.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deck-lab-bbx-apk
+          path: deck-lab-bbx.apk
+
+      - name: Pubblica nella pagina di download
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Deck Lab BBX
+          make_latest: true
+          files: deck-lab-bbx.apk
+          body: |
+            Ultima versione di Deck Lab BBX per Android (costruzione n. ${{ github.run_number }}).
+
+            Scarica **deck-lab-bbx.apk** qui sotto e aprilo sul telefono. Se Android lo chiede, consenti l'installazione di app da questa origine.

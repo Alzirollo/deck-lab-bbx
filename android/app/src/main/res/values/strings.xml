@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Deck Lab BBX</string>
+    <string name="title_activity_main">Deck Lab BBX</string>
+    <string name="package_name">com.alzirollo.decklab</string>
+    <string name="custom_url_scheme">com.alzirollo.decklab</string>
+</resources>
