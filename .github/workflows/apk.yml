@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   apk:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -24,6 +24,9 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Strumenti Android
+        uses: android-actions/setup-android@v3
+
       - name: Installa le dipendenze
         run: npm ci
 
@@ -32,9 +35,18 @@ jobs:
 
       - name: Costruisci l'APK
         working-directory: android
+        shell: bash
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          set +e
+          ./gradlew assembleDebug --no-daemon --stacktrace > build.log 2>&1
+          code=$?
+          if [ $code -ne 0 ]; then
+            # le righe di errore diventano annotazioni leggibili nella pagina della costruzione
+            grep -E "What went wrong|error:|FAILURE|Could not|> " build.log | head -25 | while IFS= read -r line; do echo "::error::$line"; done
+            tail -40 build.log
+          fi
+          exit $code
 
       - name: Rinomina l'APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk deck-lab-bbx.apk
