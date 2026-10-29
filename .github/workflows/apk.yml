@@ -48,7 +48,7 @@ jobs:
           code=$?
           if [ $code -ne 0 ]; then
             # le righe di errore diventano annotazioni leggibili nella pagina della costruzione
-            grep -E "What went wrong|error:|FAILURE|Could not|> " build.log | head -25 | while IFS= read -r line; do echo "::error::$line"; done
+            { grep -A12 "What went wrong" build.log; grep -E "^e: |error:|Could not" build.log; } | head -30 | while IFS= read -r line; do [ -n "$line" ] && echo "::error::$line"; done
             tail -40 build.log
           fi
           exit $code
