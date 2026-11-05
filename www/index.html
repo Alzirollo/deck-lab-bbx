@@ -5,7 +5,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#d9501a">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
-<script>window.DECKLAB_STANDALONE = true;</script>
+<script>window.DECKLAB_STANDALONE = true;
+// Se qualcosa si rompe all'avvio, l'errore compare sullo schermo invece della scritta "caricamento" infinita
+(function(){ function show(m){ var d=document.getElementById("boot-err"); if(!d){ d=document.createElement("pre"); d.id="boot-err"; d.style.cssText="white-space:pre-wrap;margin:12px;padding:12px;border:2px solid #c0392b;border-radius:8px;background:#fff;color:#222;font:12px monospace"; (document.body||document.documentElement).appendChild(d) } d.textContent+=m+"\n" }
+  window.addEventListener("error", function(e){ show("Errore: "+e.message+(e.filename?" ("+e.filename.split("/").pop()+":"+e.lineno+")":"")+"\nNavigatore: "+navigator.userAgent) });
+  window.addEventListener("unhandledrejection", function(e){ show("Errore: "+(e.reason&&e.reason.message||e.reason)) });
+})();
+</script>
+<script>
+// Il motore supporta gap nei flex? Se no, classe nogap sulla pagina
+(function(){ var d=document.createElement("div"); d.style.cssText="display:flex;flex-direction:column;row-gap:1px;position:absolute"; d.appendChild(document.createElement("div")); d.appendChild(document.createElement("div"));
+  document.documentElement.appendChild(d); if(d.scrollHeight!==1) document.documentElement.className+=" nogap"; document.documentElement.removeChild(d) })();
+</script>
+<script src="js/polyfill.js"></script>
 </head>
 <body>
 <title>Deck Lab BBX</title>
