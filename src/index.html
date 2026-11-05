@@ -1,0 +1,53 @@
+<title>Deck Lab BBX</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/app.css">
+<!-- Il codice è diviso per area: js/data.js (salvataggio), js/model.js (riferimenti ai pezzi), js/calc.js e js/games.js (calcoli),
+     un file per ogni scheda, js/events.js (pulsanti e avvio). L'ordine degli script conta: events.js va per ultimo. -->
+
+<header>
+  <div class="wrap">
+    <div class="top">
+      <button type="button" class="burger" id="burger" aria-expanded="false" aria-controls="menu" aria-label="Apri il menu delle sezioni">
+        <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <div class="brand">
+        <svg width="22" height="22" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11.5" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M13 3 L16 13 L13 23 L10 13 Z" fill="var(--accent)"/><circle cx="13" cy="13" r="2.4" fill="var(--ink)"/></svg>
+        <span id="cur-tab">Deck</span>
+      </div>
+      <span class="sync" id="sync">caricamento…</span>
+    </div>
+    <nav id="menu" role="tablist" aria-label="Sezioni" hidden>
+      <button role="tab" data-tab="salvati" id="t-salvati">Deck</button>
+      <button role="tab" data-tab="deck" id="t-deck">Builder</button>
+      <button role="tab" data-tab="allena" id="t-allena">Allenamento</button>
+      <button role="tab" data-tab="tornei" id="t-tornei">Tornei</button>
+      <button role="tab" data-tab="pezzi" id="t-pezzi">Pezzi</button>
+      <button role="tab" data-tab="meta" id="t-meta">Meta</button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap"><main id="main"></main></div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="js/data.js"></script>
+<script src="js/model.js"></script>
+<script src="js/calc.js"></script>
+<script src="js/games.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/builder.js"></script>
+<script src="js/train.js"></script>
+<script src="js/decks.js"></script>
+<script src="js/parts.js"></script>
+<script src="js/tournaments.js"></script>
+<script src="js/meta.js"></script>
+<script src="js/browser.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/challonge.js"></script>
+<script src="js/backup.js"></script>
+<script src="js/autocomplete.js"></script>
+<script src="js/stats.js"></script>
+<script src="js/android.js"></script>
+<script src="js/events.js"></script>

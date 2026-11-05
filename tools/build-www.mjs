@@ -1,6 +1,8 @@
-// Costruisce www/index.html (la pagina dell'app Android) da src/app.html, la stessa pagina usata dentro Claude.
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
-const app = readFileSync(new URL("../src/app.html", import.meta.url), "utf8");
+// Costruisce www/ (la pagina dell'app Android) da src/, la stessa app pubblicata dentro Claude:
+// src/index.html + src/js/*.js + src/css/app.css. Aggiunge lo scheletro della pagina e il segnale DECKLAB_STANDALONE.
+import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync } from "node:fs";
+const src = new URL("../src/", import.meta.url), www = new URL("../www/", import.meta.url);
+const app = readFileSync(new URL("index.html", src), "utf8");
 const page = `<!doctype html>
 <html lang="it">
 <head>
@@ -15,6 +17,9 @@ ${app}
 </body>
 </html>
 `;
-mkdirSync(new URL("../www/", import.meta.url), { recursive: true });
-writeFileSync(new URL("../www/index.html", import.meta.url), page);
-console.log("www/index.html pronto");
+rmSync(www, { recursive: true, force: true });
+mkdirSync(www, { recursive: true });
+cpSync(new URL("js/", src), new URL("js/", www), { recursive: true });
+cpSync(new URL("css/", src), new URL("css/", www), { recursive: true });
+writeFileSync(new URL("index.html", www), page);
+console.log("www/ pronto");
