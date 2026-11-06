@@ -63,6 +63,7 @@ function normState(x) {
   }
   delete s.settings.lockBlades;
   delete s.rev;
+  s.parts.forEach(autoCatalog);
   if (s.meta && s.meta.unit !== "count") s.meta = null;
   return migrateRefs(s);
 }

@@ -31,7 +31,8 @@ function metaMap(cat) {
 function matchName(p) {
   const list = meta()[p.type] || [];
   const keys = new Map(list.map(([n]) => [normKey(n), n]));
-  for (const c of [p.metaName, p.name, ALIAS[normKey(p.name)], ALIAS[normKey(p.metaName)]]) {
+  const cat = p.cat ? p.cat.split(" ") : [];
+  for (const c of [p.metaName, p.name, ALIAS[normKey(p.name)], ALIAS[normKey(p.metaName)], cat.join(" "), cat.slice().reverse().join(" ")]) {
     if (!c) continue;
     let k = normKey(c);
     k = TYPO[k] || k;

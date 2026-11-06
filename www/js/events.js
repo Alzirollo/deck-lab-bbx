@@ -58,11 +58,28 @@ document.getElementById("main").addEventListener("change", (e) => {
   if (t.dataset.f && t.dataset.id) {
     const p = partById(t.dataset.id);
     if (!p) return;
-    if (["avoid", "integrated", "left"].includes(t.dataset.f)) p[t.dataset.f] = t.checked;
-    else if (t.dataset.f === "qty") p.qty = Math.max(0, +t.value || 0);
-    else p[t.dataset.f] = t.value.trim();
+    const f = t.dataset.f;
+    if (["avoid", "integrated", "left"].includes(f)) p[f] = t.checked;
+    else if (f === "qty") p.qty = Math.max(0, +t.value || 0);
+    else if (f === "kind") {
+      if (t.value) {
+        p.kind = t.value;
+        p.kindSrc = "manual";
+      } else delete p.kindSrc;
+    } else p[f] = t.value.trim();
+    if (["name", "code", "kind"].includes(f)) {
+      autoCatalog(p);
+      if (f !== "kind" && !p.metaName) p.metaName = matchName(p);
+    }
     save();
     render();
+    return;
+  }
+  if (t.id === "np-type") {
+    const n = document.getElementById("np-name");
+    if (n) n.dataset.ac = t.value;
+    const c = document.getElementById("np-code");
+    if (c) c.hidden = t.value !== "bit";
     return;
   }
   if (t.id === "rule-bit") {
@@ -145,8 +162,10 @@ document.getElementById("main").addEventListener("submit", (e) => {
     } else {
       const names = (meta()[type] || []).map((x) => x[0]);
       const m = names.find((n) => n.toLowerCase() === name.toLowerCase()) || "";
-      S.parts.push({ id: uid(), type, name, code: type === "bit" ? code : "", metaName: m, kind: "", qty: 1, avoid: false, note: "" });
-      toast(`Aggiunto: ${name} (${TYPE_LABEL[type]})`);
+      const p = autoCatalog({ id: uid(), type, name, code: type === "bit" ? code : "", metaName: m, kind: "", qty: 1, avoid: false, note: "" });
+      if (!p.metaName) p.metaName = matchName(p);
+      S.parts.push(p);
+      toast(p.cat ? `Aggiunto: ${name}, riconosciuto come ${p.cat} (${p.kind}${p.integrated ? ", ratchet integrato" : ""}${p.left ? ", gira a sinistra" : ""})` : `Aggiunto: ${name}. Non l'ho trovato nel catalogo: scegli tu il tipo`);
     }
     save();
     render();

@@ -38,6 +38,7 @@ function normState(x){
   s.parts = Array.isArray(s.parts)?s.parts:[]; s.results = Array.isArray(s.results)?s.results:[]; s.decks = Array.isArray(s.decks)?s.decks:[]; s.trainLog = Array.isArray(s.trainLog)?s.trainLog:[];
   if(!Array.isArray(s.settings.slots) || s.settings.slots.length!==3){ const lb=s.settings.lockBlades||[]; s.settings.slots=[0,1,2].map(i=>lb[i]?{blade:lb[i]}:{}) }
   delete s.settings.lockBlades; delete s.rev; // resti del vecchio sistema di sincronizzazione
+  s.parts.forEach(autoCatalog); // tipo, rotazione e ratchet integrato dal catalogo
   if(s.meta && s.meta.unit!=="count") s.meta=null; // vecchie classifiche BBX Weekly: si torna ai dati MetaBeys
   return migrateRefs(s);
 }

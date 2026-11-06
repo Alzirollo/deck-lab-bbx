@@ -1,5 +1,5 @@
 function acValues(type) {
-  return [.../* @__PURE__ */ new Set([...(meta()[type] || []).map((r) => r[0]), ...choicesOf(type, true).map((p) => p.name)])].sort(alpha);
+  return [.../* @__PURE__ */ new Set([...(meta()[type] || []).map((r) => r[0]), ...CX_TYPES.includes(type) || type === "ratchet" ? [] : choicesOf(type, true).map((p) => p.name), ...CATALOG.filter((c) => c.type === type).flatMap((c) => c.names)])].sort(alpha);
 }
 let acBox = null, acInput = null, acIdx = -1;
 function acOpen(inp) {

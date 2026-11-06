@@ -1,7 +1,8 @@
 
 // ---------- Elenco a scomparsa per i campi di testo ----------
 // Mostra i nomi possibili in ordine alfabetico, filtrati da quello che si scrive, in un riquadro con barra di scorrimento
-function acValues(type){ return [...new Set([...(meta()[type]||[]).map(r=>r[0]), ...choicesOf(type,true).map(p=>p.name)])].sort(alpha) }
+// Per i pezzi nuovi propone i nomi delle scatole (Hasbro) e quelli giapponesi; per le punte anche "sigla · nome"
+function acValues(type){ return [...new Set([...(meta()[type]||[]).map(r=>r[0]), ...(CX_TYPES.includes(type)||type==="ratchet"?[]:choicesOf(type,true).map(p=>p.name)), ...CATALOG.filter(c=>c.type===type).flatMap(c=>c.names)])].sort(alpha) }
 let acBox=null, acInput=null, acIdx=-1;
 function acOpen(inp){
   acInput=inp; if(!acBox){ acBox=document.createElement("div"); acBox.className="ac"; acBox.setAttribute("role","listbox"); document.body.appendChild(acBox);

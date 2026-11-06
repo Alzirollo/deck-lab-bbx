@@ -11,8 +11,15 @@ document.getElementById("main").addEventListener("change",e=>{
   if(edChange(t)) return;
   if(liveChange(t)) return;
   if(t.dataset.f && t.dataset.id){ const p=partById(t.dataset.id); if(!p) return;
-    if(["avoid","integrated","left"].includes(t.dataset.f)) p[t.dataset.f]=t.checked; else if(t.dataset.f==="qty") p.qty=Math.max(0,+t.value||0); else p[t.dataset.f]=t.value.trim();
+    const f=t.dataset.f;
+    if(["avoid","integrated","left"].includes(f)) p[f]=t.checked;
+    else if(f==="qty") p.qty=Math.max(0,+t.value||0);
+    else if(f==="kind"){ if(t.value){ p.kind=t.value; p.kindSrc="manual" } else delete p.kindSrc }
+    else p[f]=t.value.trim();
+    // nome o sigla cambiati, oppure tipo rimesso su automatico: si ricontrolla il catalogo
+    if(["name","code","kind"].includes(f)){ autoCatalog(p); if(f!=="kind" && !p.metaName) p.metaName=matchName(p) }
     save(); render(); return }
+  if(t.id==="np-type"){ const n=document.getElementById("np-name"); if(n) n.dataset.ac=t.value; const c=document.getElementById("np-code"); if(c) c.hidden=t.value!=="bit"; return }
   if(t.id==="rule-bit"){ S.settings.bitTypeLimit=t.checked; aiResult=null; save(); render() }
   if(t.id==="pw"){ S.settings.personalWeight=+t.value; save(); render() }
   if(t.id==="ch-user"){ S.settings.challonge=t.value.trim(); save(); render() }
@@ -43,7 +50,8 @@ document.getElementById("main").addEventListener("submit",e=>{
     const existing=S.parts.find(p=>p.type===type && p.name.toLowerCase()===name.toLowerCase());
     if(existing){ existing.qty=(+existing.qty||0)+1; toast(`${name}: ora ne hai ${existing.qty}`) }
     else { const names=(meta()[type]||[]).map(x=>x[0]); const m=names.find(n=>n.toLowerCase()===name.toLowerCase())||"";
-      S.parts.push({id:uid(),type,name,code:type==="bit"?code:"",metaName:m,kind:"",qty:1,avoid:false,note:""}); toast(`Aggiunto: ${name} (${TYPE_LABEL[type]})`) }
+      const p=autoCatalog({id:uid(),type,name,code:type==="bit"?code:"",metaName:m,kind:"",qty:1,avoid:false,note:""}); if(!p.metaName) p.metaName=matchName(p);
+      S.parts.push(p); toast(p.cat?`Aggiunto: ${name}, riconosciuto come ${p.cat} (${p.kind}${p.integrated?", ratchet integrato":""}${p.left?", gira a sinistra":""})`:`Aggiunto: ${name}. Non l'ho trovato nel catalogo: scegli tu il tipo`) }
     save(); render(); return;
   }
   if(e.target.id==="res-form"){

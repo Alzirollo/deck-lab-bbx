@@ -1,4 +1,17 @@
 // Scheda PEZZI: collezione e sistema CX
+// Sotto il nome: come l'ha riconosciuto il catalogo
+function catLine(p){
+  if(!["blade","bit","mainblade"].includes(p.type)) return "";
+  if(!p.cat) return `<div class="small muted" style="margin-top:2px">non riconosciuto: scegli il tipo</div>`;
+  const c=catalogMatch(p.type,p.name,p.code); if(!c) return "";
+  const bits=[catKey(c.jp)!==catKey(p.name)?`in Giappone ${esc(c.jp)}`:"", c.integrated?"ratchet integrato":"", c.left?"gira a sinistra":""].filter(Boolean);
+  return bits.length?`<div class="small muted" style="margin-top:2px">${bits.join(" · ")}</div>`:"";
+}
+// Tipo: automatico dal catalogo, oppure scelto a mano
+function kindSel(p){
+  const c=p.cat?catalogMatch(p.type,p.name,p.code):null; const manual=p.kindSrc==="manual";
+  return `<select data-f="kind" data-id="${p.id}" aria-label="Tipo"><option value="" ${manual?"":"selected"}>${c?`automatico (${c.kind})`:"da scegliere"}</option>${KINDS.map(k=>`<option value="${k}" ${manual&&k===p.kind?"selected":""}>${k}</option>`).join("")}</select>`;
+}
 function vParts(){
   const GROUP_TITLE={blade:"Lame", ratchet:"Ratchet", bit:"Punte", lockchip:"Lock chip", mainblade:"Main blade", assist:"Assist blade"};
   const table=type=>{
@@ -8,9 +21,9 @@ function vParts(){
       <div class="row" style="justify-content:space-between"><h3>${GROUP_TITLE[type]} <span class="chip">${list.length}</span></h3></div>
       ${list.length?`<div class="tbl"><table><thead><tr><th>${type==="bit"?"Sigla · nome":"Nome"}</th>${hasMeta?"<th>Nome nei tornei</th>":""}${hasKind?"<th>Tipo</th>":""}${type==="blade"?"<th>Ratchet integrato</th><th>Rotazione sx</th>":""}<th>Qtà</th><th>Indice</th><th>Evita</th><th>Nota</th><th></th></tr></thead><tbody>
       ${list.map(p=>{const s=sc(p); return `<tr class="${p.avoid?"off":""}">
-        <td>${type==="bit"?`<div class="row" style="gap:6px;flex-wrap:nowrap"><input data-f="code" data-id="${p.id}" value="${esc(p.code||"")}" style="width:52px" aria-label="Sigla"><input data-f="name" data-id="${p.id}" value="${esc(p.name)}" aria-label="Nome" style="width:120px"></div>`:`<input data-f="name" data-id="${p.id}" value="${esc(p.name)}" aria-label="Nome" style="width:150px">`}</td>
+        <td>${type==="bit"?`<div class="row" style="gap:6px;flex-wrap:nowrap"><input data-f="code" data-id="${p.id}" value="${esc(p.code||"")}" style="width:52px" aria-label="Sigla"><input data-f="name" data-id="${p.id}" value="${esc(p.name)}" aria-label="Nome" style="width:120px"></div>`:`<input data-f="name" data-id="${p.id}" value="${esc(p.name)}" aria-label="Nome" style="width:150px">`}${catLine(p)}</td>
         ${hasMeta?`<td><select data-f="metaName" data-id="${p.id}" aria-label="Nome nei tornei"><option value="">fuori classifica</option>${names.slice().sort(alpha).map(n=>`<option ${n===p.metaName?"selected":""}>${esc(n)}</option>`).join("")}</select></td>`:""}
-        ${hasKind?`<td><select data-f="kind" data-id="${p.id}" aria-label="Tipo"><option value="">?</option>${KINDS.map(k=>`<option ${k===p.kind?"selected":""}>${k}</option>`).join("")}</select></td>`:""}
+        ${hasKind?`<td>${kindSel(p)}</td>`:""}
         ${type==="blade"?`<td><input type="checkbox" id="cb-integrated-${p.id}-${p.integrated?1:0}" data-f="integrated" data-id="${p.id}" ${p.integrated?"checked":""} aria-label="Ratchet integrato"></td><td><input type="checkbox" id="cb-left-${p.id}-${p.left?1:0}" data-f="left" data-id="${p.id}" ${p.left?"checked":""} aria-label="Rotazione sinistra"></td>`:""}
         <td><input class="qty" type="number" min="0" data-f="qty" data-id="${p.id}" value="${+p.qty||0}" aria-label="Quantità"></td>
         <td class="mono">${hasMeta?`${s.total.toFixed(0)}${s.metaRank?` <span class="muted small">#${s.metaRank}</span>`:""}${s.games?` <span class="chip">${s.games} inc.</span>`:""}`:"—"}</td>
@@ -29,11 +42,11 @@ function vParts(){
   </section>`;
   return `<section class="panel">
     <h2>La tua collezione</h2>
-    <p class="muted">Il nome è quello della confezione; “nome nei tornei” è quello usato nelle classifiche, e si ricollega da solo quando aggiorni il meta. Un pezzo fuori classifica vale ${fallback()} punti di indice. Se nella nota scrivi “balla” o “lento”, il ratchet viene penalizzato.</p>
+    <p class="muted">Scrivi il nome che trovi sulla scatola: tipo, rotazione e ratchet integrato si compilano da soli dal catalogo, e sotto il nome compare come si chiama il pezzo in Giappone. Se il catalogo non lo conosce, il tipo lo scegli tu. Il nome è quello della confezione; “nome nei tornei” è quello usato nelle classifiche, e si ricollega da solo quando aggiorni il meta. Un pezzo fuori classifica vale ${fallback()} punti di indice. Se nella nota scrivi “balla” o “lento”, il ratchet viene penalizzato.</p>
     <form id="add-part" class="row">
       <select id="np-type" aria-label="Categoria"><option value="blade">Lama</option><option value="ratchet">Ratchet</option><option value="bit">Punta</option><option value="lockchip">CX · Lock chip</option><option value="mainblade">CX · Main blade</option><option value="assist">CX · Assist blade</option></select>
-      <input id="np-name" placeholder="Nome, es. Shark Scale o 3-60" required aria-label="Nome del pezzo" style="flex:1;min-width:160px">
-      <input id="np-code" placeholder="Sigla punta" aria-label="Sigla della punta" style="width:110px">
+      <input id="np-name" data-ac="blade" autocomplete="off" placeholder="Nome sulla scatola, es. Tide Whale o 3-60" required aria-label="Nome del pezzo" style="flex:1;min-width:160px">
+      <input id="np-code" placeholder="Sigla punta" aria-label="Sigla della punta" style="width:110px" hidden>
       <button class="btn primary" type="submit">Aggiungi</button>
     </form>
   </section>${groups}${vBackup()}`;
