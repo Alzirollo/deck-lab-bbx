@@ -66,12 +66,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          NOTE="Ultima versione di Deck Lab BBX per Android (costruzione n. ${{ github.run_number }}).
+          # Una release per ogni versione (v1.0.N): Obtainium e simili riconoscono gli aggiornamenti dal numero.
+          # Il link .../releases/latest/download/deck-lab-bbx.apk punta sempre alla più recente.
+          V="v1.0.${{ github.run_number }}"
+          NOTE="Deck Lab BBX per Android, versione ${V#v}.
 
-          Scarica deck-lab-bbx.apk qui sotto e aprilo sul telefono. Se Android lo chiede, consenti l'installazione di app da questa origine."
-          if gh release view latest >/dev/null 2>&1; then
-            gh release upload latest deck-lab-bbx.apk --clobber
-            gh release edit latest --title "Deck Lab BBX" --notes "$NOTE" --latest
-          else
-            gh release create latest deck-lab-bbx.apk --title "Deck Lab BBX" --notes "$NOTE" --latest
-          fi
+          Scarica deck-lab-bbx.apk qui sotto e aprilo sul telefono. Se Android lo chiede, consenti l'installazione di app da questa origine. Gli aggiornamenti si installano sopra la versione precedente e i dati restano."
+          gh release create "$V" deck-lab-bbx.apk --title "Deck Lab BBX ${V#v}" --notes "$NOTE" --latest
+          # la vecchia release unica "latest" non serve più
+          gh release delete latest --yes --cleanup-tag 2>/dev/null || true

@@ -22,6 +22,6 @@ App per Beyblade X: collezione di pezzi, builder del deck a pezzi unici, allenam
 - L'app è in `src/`: `index.html` (struttura), `css/app.css` e un file JavaScript per area in `js/` (salvataggio, riferimenti ai pezzi, calcoli, una scheda per file, pulsanti). È la stessa app pubblicata dentro Claude.
 - `npm run build:www` la copia in `www/` aggiungendo lo scheletro della pagina e il segnale `DECKLAB_STANDALONE`, che attiva le funzioni Android (meta e Challonge letti direttamente, niente Claude).
 - Il progetto Android in `android/` è generato da Capacitor 6; di nostro ci sono solo icone, schermata di avvio, firma e numero di versione in `android/app/build.gradle`.
-- A ogni modifica caricata sul ramo `main`, GitHub costruisce l'APK e lo pubblica nella pagina [Releases](https://github.com/Alzirollo/deck-lab-bbx/releases/latest).
+- A ogni modifica caricata sul ramo `main`, GitHub costruisce l'APK e lo pubblica come nuova versione (v1.0.N) nella pagina [Releases](https://github.com/Alzirollo/deck-lab-bbx/releases/latest). Con Obtainium basta aggiungere l'indirizzo del repository per ricevere gli aggiornamenti.
 - La firma dell'app è in `android/app/decklab.keystore`: deve restare la stessa, altrimenti gli aggiornamenti non si installano sopra la versione precedente.
 - `build:www` riscrive il codice per i motori vecchi (Chrome 58 in su, quindi anche Android 9 con WebView mai aggiornata), aggiunge le funzioni mancanti con core-js e, se l'avvio fallisce, mostra l'errore sullo schermo.
