@@ -34,8 +34,13 @@ function trainWeightBase(arena, c) {
 }
 function trainCur() {
   if (!S.train || !S.train.cur) S.train = { cur: { a: {}, b: { mine: true }, arena: "torneo" } };
-  return S.train.cur;
+  const c = S.train.cur;
+  if (!c.sid) c.sid = uid();
+  return c;
 }
+const newSession = (c) => {
+  c.sid = uid();
+};
 const comboKey = (x) => [x && x.mine === false ? "o" : "m", x && x.blade || "?", x && x.ratchet || "?", x && x.bit || "?"].join("|");
 const comboLabel = (x, mine) => {
   if (mine === false) {
@@ -44,7 +49,6 @@ const comboLabel = (x, mine) => {
   }
   return [x.blade ? nm("blade", x.blade) : "?", x.ratchet ? nm("ratchet", x.ratchet) : x.blade && isIntegrated(x.blade) ? "integrato" : "?", x.bit ? bitShort(x.bit) : "?"].join(" ");
 };
-const sameMatchup = (e, c) => comboKey(__spreadProps(__spreadValues({}, e.a), { mine: true })) === comboKey(__spreadProps(__spreadValues({}, c.a), { mine: true })) && comboKey(e.b) === comboKey(c.b) && e.arena === c.arena;
 function trainTally(list) {
   return list.reduce((t, e) => {
     if (e.side === "a") {
@@ -74,7 +78,8 @@ function vTrain() {
   const oppInp = (x) => ["blade", "ratchet", "bit"].map((type) => `<input data-tr="b" data-cf="${type}" data-ac="${type}" autocomplete="off" value="${esc(x[type] || "")}" placeholder="${TYPE_LABEL[type]} (se la sai)" aria-label="${TYPE_LABEL[type]} avversaria" style="flex:1;min-width:120px">`).join("");
   const names = (type) => [.../* @__PURE__ */ new Set([...(meta()[type] || []).map((r) => r[0]), ...S.parts.filter((p) => p.type === type).map((p) => p.name)])];
   const ready = c.a.blade && (c.b.mine === false || c.b.blade);
-  const cur = log.filter((e) => sameMatchup(e, c));
+  const flipS = (x) => x === "a" ? "b" : x === "b" ? "a" : x;
+  const cur = log.filter((e) => e.sid === c.sid).map((e) => comboKey(__spreadProps(__spreadValues({}, e.a), { mine: true })) === comboKey(__spreadProps(__spreadValues({}, c.a), { mine: true })) ? e : __spreadValues(__spreadProps(__spreadValues({}, e), { side: flipS(e.side) }), e.first ? { first: flipS(e.first) } : {}));
   const T = trainTally(cur);
   const lab = (x, mine) => x.blade ? esc(comboLabel(x, mine)) : mine === false ? "Avversario" : "\u2014";
   const nameA = nm("blade", c.a.blade) || "Combo A", nameB = (c.b.mine === false ? c.b.blade : nm("blade", c.b.blade)) || (c.b.mine === false ? "Avversario" : "Combo B");
@@ -118,7 +123,7 @@ function vTrain() {
       <span class="muted" style="font-size:26px">\u2013</span>
       <div class="stat" style="text-align:center"><span class="small muted">B vince</span><b style="font-size:40px">${T.b}</b></div>
     </div>
-    <p class="small muted" style="text-align:center">${cur.length ? `${cur.length} scontri${T.d ? `, ${T.d} pareggi` : ""} \xB7 punti ${T.pa}-${T.pb}${T.a + T.b ? ` \xB7 A vince il ${Math.round(T.a / (T.a + T.b) * 100)}%` : ""}` : "Nessuno scontro ancora per questa sfida"}</p>
+    <p class="small muted" style="text-align:center">${cur.length ? `${cur.length} scontri${T.d ? `, ${T.d} pareggi` : ""} \xB7 punti ${T.pa}-${T.pb}${T.a + T.b ? ` \xB7 A vince il ${Math.round(T.a / (T.a + T.b) * 100)}%` : ""}` : "Sessione nuova: si parte da 0-0"}</p>
     ${(() => {
     const sl = cur.filter((e) => e.solo && e.side !== "draw");
     if (!sl.length) return "";
@@ -140,7 +145,7 @@ function vTrain() {
     const t = trainTally(g.list);
     const e = g.e;
     return `<div class="alt"><span class="small" style="min-width:0"><b>${lab(e.a, true)}</b> contro <b>${lab(e.b, e.b.mine)}</b><br><span class="muted">${esc(ARENAS.find((x) => x[0] === e.arena)[1])} \xB7 ${g.list.length} scontri</span></span>
-        <span class="row" style="gap:6px"><span class="mono">${t.a}-${t.b}</span><button class="btn ghost" data-act="tr-load" data-t="${g.list[g.list.length - 1].id}">Riprendi</button></span></div>`;
+        <span class="row" style="gap:6px"><span class="mono">${t.a}-${t.b}</span><button class="btn ghost" data-act="tr-load" data-t="${g.list[g.list.length - 1].id}" title="Rimette queste combo e riparte da 0-0">Rigioca</button></span></div>`;
   }).join("")}
       ${gl.length > 12 && !trainShowAll ? `<button class="btn ghost" data-act="tr-more">Mostra tutte</button>` : ""}</div>`}</section>` : ""}`;
 }
@@ -149,13 +154,19 @@ function trainClick(a, b) {
   const c = trainCur();
   S.trainLog = S.trainLog || [];
   if (a === "tr-arena") {
-    c.arena = b.dataset.k;
+    if (c.arena !== b.dataset.k) {
+      c.arena = b.dataset.k;
+      newSession(c);
+    }
     save();
     render();
   }
   if (a === "tr-bown") {
     const m = b.dataset.mine === "1";
-    if (c.b.mine !== false !== m) c.b = { mine: m };
+    if (c.b.mine !== false !== m) {
+      c.b = { mine: m };
+      newSession(c);
+    }
     save();
     render();
   }
@@ -177,7 +188,7 @@ function trainClick(a, b) {
     const side = a === "tr-draw" ? "draw" : b.dataset.side, f = a === "tr-draw" ? "draw" : b.dataset.f;
     const pts = side === "draw" ? 0 : FINISH.find((x) => x[0] === f)[2];
     const solo = c.b.mine !== false && !!c.solo;
-    S.trainLog.push(__spreadValues({ id: uid(), t: Date.now(), a: __spreadValues({}, c.a), b: __spreadValues({}, c.b), arena: c.arena, side, f, pts }, solo ? { solo: true, first: c.first || "a" } : {}));
+    S.trainLog.push(__spreadValues({ id: uid(), t: Date.now(), a: __spreadValues({}, c.a), b: __spreadValues({}, c.b), arena: c.arena, side, f, pts, sid: c.sid }, solo ? { solo: true, first: c.first || "a" } : {}));
     if (solo && c.alt) c.first = (c.first || "a") === "a" ? "b" : "a";
     if (S.trainLog.length > 2e3) S.trainLog = S.trainLog.slice(-2e3);
     save();
@@ -185,7 +196,7 @@ function trainClick(a, b) {
   }
   if (a === "tr-undo") {
     for (let i = S.trainLog.length - 1; i >= 0; i--) {
-      if (sameMatchup(S.trainLog[i], c)) {
+      if (S.trainLog[i].sid === c.sid) {
         S.trainLog.splice(i, 1);
         break;
       }
@@ -199,6 +210,7 @@ function trainClick(a, b) {
       c.a = __spreadValues({}, e.a);
       c.b = __spreadValues({}, e.b);
       c.arena = e.arena;
+      newSession(c);
       save();
       render();
       window.scrollTo({ top: 0 });
@@ -214,6 +226,7 @@ function trainChange(t) {
   if (t.dataset.tr == null) return false;
   const c = trainCur();
   const side = t.dataset.tr, k = t.dataset.cf;
+  if (((c[side] || {})[k] || "") !== t.value.trim()) newSession(c);
   c[side] = __spreadProps(__spreadValues({}, c[side]), { [k]: t.value.trim() });
   if (k === "blade" && side !== "b" || k === "blade" && c.b.mine !== false) {
     if (isIntegrated(t.value)) c[side].ratchet = "";

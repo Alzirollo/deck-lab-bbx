@@ -1,7 +1,9 @@
 // Scheda ALLENAMENTO
 function foldHead(key,title,count){ const shut=!!fold[key]; return `<button type="button" data-act="fold" data-key="${key}" aria-expanded="${!shut}" style="all:unset;box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;width:100%;cursor:pointer"><h3>${title} <span class="chip">${count}</span></h3><span class="mono">${shut?"▾":"▴"}</span></button>` }
 // ---------- Allenamento ----------
-// S.train.cur = {a:{blade,ratchet,bit}, b:{mine, blade, ratchet, bit}, arena}; S.trainLog = [{id,t,a,b,arena,side,f,pts}]
+// S.train.cur = {a:{blade,ratchet,bit}, b:{mine, blade, ratchet, bit}, arena, sid}; S.trainLog = [{id,t,a,b,arena,side,f,pts,sid}]
+// sid = sessione: il punteggio in alto conta solo gli scontri della sessione corrente.
+// Una sessione nuova (0-0) parte quando cambi un pezzo, l'arena o l'avversario, e quando rigiochi una sfida passata.
 const ARENAS=[["torneo","Arena da torneo"],["hasbro","Arena Hasbro"]];
 // Quanto conta uno scontro di allenamento nell'indice, rispetto a uno di torneo (che vale 1)
 const TRAIN_WEIGHT={torneo:0.6, hasbro:0.2};
@@ -15,10 +17,10 @@ function trainWeightBase(arena, c){
   const t=ref("bit",c&&c.bit);
   return t&&t.kind==="difesa" ? 0.03 : TRAIN_WEIGHT.hasbro; // il tipo della combo lo dà la punta
 }
-function trainCur(){ if(!S.train||!S.train.cur) S.train={cur:{a:{}, b:{mine:true}, arena:"torneo"}}; return S.train.cur }
+function trainCur(){ if(!S.train||!S.train.cur) S.train={cur:{a:{}, b:{mine:true}, arena:"torneo"}}; const c=S.train.cur; if(!c.sid) c.sid=uid(); return c }
+const newSession = c => { c.sid=uid() };
 const comboKey = x => [x&&x.mine===false?"o":"m", (x&&x.blade)||"?", (x&&x.ratchet)||"?", (x&&x.bit)||"?"].join("|");
 const comboLabel = (x,mine) => { if(mine===false){ const p=[x.blade,x.ratchet,x.bit].filter(Boolean); return p.length?p.join(" "):"avversario sconosciuto" } return [x.blade?nm("blade",x.blade):"?", x.ratchet?nm("ratchet",x.ratchet):(x.blade&&isIntegrated(x.blade)?"integrato":"?"), x.bit?bitShort(x.bit):"?"].join(" ") };
-const sameMatchup = (e,c) => comboKey({...e.a,mine:true})===comboKey({...c.a,mine:true}) && comboKey(e.b)===comboKey(c.b) && e.arena===c.arena;
 function trainTally(list){ return list.reduce((t,e)=>{ if(e.side==="a"){ t.a++; t.pa+=e.pts } else if(e.side==="b"){ t.b++; t.pb+=e.pts } else t.d++; t.f[e.side+":"+e.f]=(t.f[e.side+":"+e.f]||0)+1; return t },{a:0,b:0,d:0,pa:0,pb:0,f:{}}) }
 let trainShowAll=false;
 function vTrain(){
@@ -33,7 +35,10 @@ function vTrain(){
   const names=type=>[...new Set([...(meta()[type]||[]).map(r=>r[0]), ...S.parts.filter(p=>p.type===type).map(p=>p.name)])];
 
   const ready=c.a.blade && (c.b.mine===false || c.b.blade);
-  const cur=log.filter(e=>sameMatchup(e,c)); const T=trainTally(cur);
+  // scontri della sessione; se hai scambiato A e B, i lati si leggono al contrario
+  const flipS=x=>x==="a"?"b":x==="b"?"a":x;
+  const cur=log.filter(e=>e.sid===c.sid).map(e=>comboKey({...e.a,mine:true})===comboKey({...c.a,mine:true})?e:{...e, side:flipS(e.side), ...(e.first?{first:flipS(e.first)}:{})});
+  const T=trainTally(cur);
   const lab=(x,mine)=>x.blade?esc(comboLabel(x,mine)):(mine===false?"Avversario":"—");
   const nameA=nm("blade",c.a.blade)||"Combo A", nameB=(c.b.mine===false?c.b.blade:nm("blade",c.b.blade))||(c.b.mine===false?"Avversario":"Combo B");
   const finBtns=side=>FINISH.map(([f,l,p])=>`<button class="btn ${side==="a"?"primary":""}" data-act="tr-pt" data-side="${side}" data-f="${f}" ${ready?"":"disabled"} style="flex:1;min-width:64px;justify-content:center;padding-block:12px">${l} +${p}</button>`).join("");
@@ -71,7 +76,7 @@ function vTrain(){
       <span class="muted" style="font-size:26px">–</span>
       <div class="stat" style="text-align:center"><span class="small muted">B vince</span><b style="font-size:40px">${T.b}</b></div>
     </div>
-    <p class="small muted" style="text-align:center">${cur.length?`${cur.length} scontri${T.d?`, ${T.d} pareggi`:""} · punti ${T.pa}-${T.pb}${T.a+T.b?` · A vince il ${Math.round(T.a/(T.a+T.b)*100)}%`:""}`:"Nessuno scontro ancora per questa sfida"}</p>
+    <p class="small muted" style="text-align:center">${cur.length?`${cur.length} scontri${T.d?`, ${T.d} pareggi`:""} · punti ${T.pa}-${T.pb}${T.a+T.b?` · A vince il ${Math.round(T.a/(T.a+T.b)*100)}%`:""}`:"Sessione nuova: si parte da 0-0"}</p>
     ${(()=>{ const sl=cur.filter(e=>e.solo&&e.side!=="draw"); if(!sl.length) return ""; const fa=sl.filter(e=>e.first==="a"), sa=sl.filter(e=>e.first==="b");
       const pc=l=>l.length?`${l.filter(e=>e.side==="a").length}/${l.length}`:"—";
       return `<p class="small muted" style="text-align:center">Lancio da solo · A vince ${pc(fa)} partendo per prima, ${pc(sa)} partendo per seconda</p>` })()}
@@ -84,33 +89,34 @@ function vTrain(){
 
   ${gl.length?`<section class="panel">${foldHead("train","Tutte le sfide",gl.length)}${fold.train?"":`<div>${gl.slice(0,trainShowAll?999:12).map(g=>{ const t=trainTally(g.list); const e=g.e;
       return `<div class="alt"><span class="small" style="min-width:0"><b>${lab(e.a,true)}</b> contro <b>${lab(e.b,e.b.mine)}</b><br><span class="muted">${esc(ARENAS.find(x=>x[0]===e.arena)[1])} · ${g.list.length} scontri</span></span>
-        <span class="row" style="gap:6px"><span class="mono">${t.a}-${t.b}</span><button class="btn ghost" data-act="tr-load" data-t="${g.list[g.list.length-1].id}">Riprendi</button></span></div>`}).join("")}
+        <span class="row" style="gap:6px"><span class="mono">${t.a}-${t.b}</span><button class="btn ghost" data-act="tr-load" data-t="${g.list[g.list.length-1].id}" title="Rimette queste combo e riparte da 0-0">Rigioca</button></span></div>`}).join("")}
       ${gl.length>12&&!trainShowAll?`<button class="btn ghost" data-act="tr-more">Mostra tutte</button>`:""}</div>`}</section>`:""}`;
 }
 function trainClick(a,b){
   if(!a.startsWith("tr-")) return false;
   const c=trainCur(); S.trainLog=S.trainLog||[];
-  if(a==="tr-arena"){ c.arena=b.dataset.k; save(); render() }
-  if(a==="tr-bown"){ const m=b.dataset.mine==="1"; if((c.b.mine!==false)!==m) c.b={mine:m}; save(); render() }
+  if(a==="tr-arena"){ if(c.arena!==b.dataset.k){ c.arena=b.dataset.k; newSession(c) } save(); render() }
+  if(a==="tr-bown"){ const m=b.dataset.mine==="1"; if((c.b.mine!==false)!==m){ c.b={mine:m}; newSession(c) } save(); render() }
   if(a==="tr-swap"){ const A={...c.a}; c.a={...c.b}; delete c.a.mine; c.b={...A, mine:true}; if(c.first) c.first=c.first==="a"?"b":"a"; save(); render() }
   if(a==="tr-first"){ c.first=b.dataset.k; save(); render() }
   if(a==="tr-pt"||a==="tr-draw"){
     const side=a==="tr-draw"?"draw":b.dataset.side, f=a==="tr-draw"?"draw":b.dataset.f;
     const pts=side==="draw"?0:FINISH.find(x=>x[0]===f)[2];
     const solo=c.b.mine!==false && !!c.solo;
-    S.trainLog.push({id:uid(), t:Date.now(), a:{...c.a}, b:{...c.b}, arena:c.arena, side, f, pts, ...(solo?{solo:true, first:c.first||"a"}:{})});
+    S.trainLog.push({id:uid(), t:Date.now(), a:{...c.a}, b:{...c.b}, arena:c.arena, side, f, pts, sid:c.sid, ...(solo?{solo:true, first:c.first||"a"}:{})});
     if(solo && c.alt) c.first=(c.first||"a")==="a"?"b":"a"; // alterno chi lancia per primo
     if(S.trainLog.length>2000) S.trainLog=S.trainLog.slice(-2000);
     save(); render();
   }
-  if(a==="tr-undo"){ for(let i=S.trainLog.length-1;i>=0;i--){ if(sameMatchup(S.trainLog[i],c)){ S.trainLog.splice(i,1); break } } save(); render() }
-  if(a==="tr-load"){ const e=S.trainLog.find(x=>x.id===b.dataset.t); if(e){ c.a={...e.a}; c.b={...e.b}; c.arena=e.arena; save(); render(); window.scrollTo({top:0}) } }
+  if(a==="tr-undo"){ for(let i=S.trainLog.length-1;i>=0;i--){ if(S.trainLog[i].sid===c.sid){ S.trainLog.splice(i,1); break } } save(); render() }
+  if(a==="tr-load"){ const e=S.trainLog.find(x=>x.id===b.dataset.t); if(e){ c.a={...e.a}; c.b={...e.b}; c.arena=e.arena; newSession(c); save(); render(); window.scrollTo({top:0}) } }
   if(a==="tr-more"){ trainShowAll=true; render() }
   return true;
 }
 function trainChange(t){
   if(t.dataset.tr==null) return false;
   const c=trainCur(); const side=t.dataset.tr, k=t.dataset.cf;
+  if(((c[side]||{})[k]||"")!==t.value.trim()) newSession(c); // pezzo cambiato: si riparte da 0-0
   c[side]={...c[side], [k]:t.value.trim()};
   if(k==="blade" && side!=="b"||k==="blade"&&c.b.mine!==false){ if(isIntegrated(t.value)) c[side].ratchet="" }
   save(); render(); return true;
