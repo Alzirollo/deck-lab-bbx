@@ -227,6 +227,14 @@ const ACT = {
     deckOpen = deckOpen === b.dataset.k ? null : b.dataset.k;
     render();
   },
+  "dk-sort": (b) => {
+    deckSort = b.dataset.k;
+    try {
+      localStorage.setItem("decklab-decksort", deckSort);
+    } catch (e) {
+    }
+    render();
+  },
   "st-open": (b) => {
     statOpen = statOpen === b.dataset.k ? null : b.dataset.k;
     render();

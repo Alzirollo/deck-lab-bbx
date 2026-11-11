@@ -63,10 +63,11 @@ function deckSeries(keys, recs) {
   });
   return pts;
 }
-function vDeckStats(d) {
+function deckSummary(d, all) {
   const keys = deckKeys(d.combos);
-  const recs = battleRecords().filter((r) => keys.includes(r.key));
+  const recs = (all || battleRecords()).filter((r) => keys.includes(r.key));
   const used = deckPhases(d);
+  if (!recs.length && !used.length) return null;
   const mw = used.reduce((a, u) => {
     const m = u.ph.matches || [];
     if (m.length) {
@@ -78,36 +79,28 @@ function vDeckStats(d) {
     }
     return a;
   }, [0, 0]);
-  const evs = [...new Set(used.map((u) => u.ev))];
-  const o = wlOf(recs), open = deckOpen === d.id;
-  if (!recs.length && !used.length) return `<p class="small muted">Ancora nessun risultato con questo deck o con le sue trottole.</p>`;
-  const E = deckEstimate(keys, recs), p = Math.round(E.est * 100);
+  const E = deckEstimate(keys, recs);
+  return { keys, recs, used, mw, evs: [...new Set(used.map((u) => u.ev))], E, p: Math.round(E.est * 100) };
+}
+function vDeckStats(d, sum) {
+  sum = sum || deckSummary(d);
+  if (!sum) return `<p class="small muted">Ancora nessun risultato con questo deck o con le sue trottole.</p>`;
+  const { keys, recs, evs, mw, E } = sum;
   const pts = deckSeries(keys, recs);
-  let body = "";
-  if (open) {
-    body = `<div class="stack" style="gap:12px;padding-top:6px">
-      <p class="small muted">La stima del deck \xE8 la media delle tre trottole, ognuna nella sua configurazione esatta e in tutti i suoi scontri. Ogni trottola pesa un terzo. Ogni scontro pesa come nel Builder: torneo 1, allenamento in arena da torneo 0,6, arena Hasbro 0,2 (difesa 0,03), mia contro mia la met\xE0, lancio da solo corretto. Con poco peso accumulato la stima resta vicina al 50%.</p>
-      ${pts.length > 1 ? `<div class="stack" style="gap:4px"><span class="small muted">Andamento della stima del deck (ogni trottola sui suoi ultimi 10 scontri da torneo di peso)</span>${lineChart(pts, 640, 130, true, "d:" + d.id)}</div>` : ""}
-      ${evs.length ? `<p class="small">Usato in: ${evs.map(esc).join(", ")}</p>` : ""}
+  return `<div class="stack" style="gap:12px">
+      ${pts.length > 1 ? `<div class="stack" style="gap:4px"><span class="small muted">Andamento della stima (ogni trottola sui suoi ultimi 10 scontri da torneo di peso)</span>${lineChart(pts, 640, 130, true, "d:" + d.id)}</div>` : ""}
+      ${evs.length ? `<p class="small">Usato in ${evs.length} torne${evs.length === 1 ? "o" : "i"} (${evs.map(esc).join(", ")}) \xB7 incontri <span class="mono">${mw[0]}-${mw[1]}</span></p>` : ""}
       <div class="stack" style="gap:2px"><span class="small muted">Le tre trottole, in tutti i loro scontri (anche fuori da questo deck)</span>
       ${d.combos.map((c, i) => {
-      const k = keys[i];
-      const l = recs.filter((r) => r.key === k);
-      const co = wlOf(l);
-      const est = Math.round(((E.per[i] || {}).est || 0.5) * 100);
-      return `<div class="cfg"><span class="mono" style="min-width:0">${esc(comboText(c))}</span><span class="mono small">${co.w}-${co.l}${co.d ? `-${co.d}` : ""} \xB7 ${l.length} scontri</span><b class="mono" title="stima">${est}%</b>${estBar(est)}</div>`;
-    }).join("")}
-      </div></div>`;
-  }
-  return `<div class="stack" style="gap:6px;width:100%">
-    <button type="button" class="bs-head" data-act="dk-open" data-k="${d.id}" aria-expanded="${open}">
-      <span class="small" style="min-width:0">Stima del deck${used.length ? ` \xB7 usato in ${evs.length} torne${evs.length === 1 ? "o" : "i"}, incontri <span class="mono">${mw[0]}-${mw[1]}</span>` : ""}<br><span class="muted">trottole: ${E.per.map((x) => `<span class="mono">${x.n}</span>`).join(" \xB7 ")} scontri</span></span>
-      <span class="bs-spark">${lineChart(pts, 140, 34, false, "ds:" + d.id)}</span>
-      <b class="bs-pct mono">${p != null ? p + "%" : "\u2013"}</b><span class="mono muted">${open ? "\u25B4" : "\u25BE"}</span>
-    </button>
-    ${estBar(p)}
-    ${body}
-  </div>`;
+    const k = keys[i];
+    const l = recs.filter((r) => r.key === k);
+    const co = wlOf(l);
+    const est = Math.round(((E.per[i] || {}).est || 0.5) * 100);
+    return `<div class="cfg"><span style="min-width:0">${esc(comboText(c))}</span><span class="mono small">${co.w}-${co.l}${co.d ? `-${co.d}` : ""} \xB7 ${l.length} scontri</span><b class="mono" title="stima">${est}%</b>${estBar(est)}</div>`;
+  }).join("")}
+      </div>
+      <details class="small muted"><summary>Come si calcola la stima</summary><p>\xC8 la media delle tre trottole, ognuna nella sua configurazione esatta e in tutti i suoi scontri; ogni trottola pesa un terzo. Ogni scontro pesa come nel Builder: torneo 1, allenamento in arena da torneo 0,6, arena Hasbro 0,2 (difesa 0,03), mia contro mia la met\xE0, lancio da solo corretto. Con pochi scontri la stima resta vicina al 50%.</p></details>
+    </div>`;
 }
 function kindOfBit(v) {
   const p = ref("bit", v);

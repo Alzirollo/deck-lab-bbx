@@ -73,6 +73,7 @@ const ACT = {
   // viste
   "st-src": b => { statSrc=b.dataset.k; try{ localStorage.setItem("decklab-statsrc",statSrc) }catch(e){} render() },
   "dk-open": b => { deckOpen=deckOpen===b.dataset.k?null:b.dataset.k; render() },
+  "dk-sort": b => { deckSort=b.dataset.k; try{ localStorage.setItem("decklab-decksort",deckSort) }catch(e){} render() },
   "st-open": b => { statOpen=statOpen===b.dataset.k?null:b.dataset.k; render() },
   "go-builder": () => { tab="deck"; render(); top0() },
   "fold": b => { fold[b.dataset.key]=!fold[b.dataset.key]; try{ localStorage.setItem("decklab-fold",JSON.stringify(fold)) }catch(e){} render() },
