@@ -77,7 +77,10 @@ document.getElementById("main").addEventListener("change", (e) => {
   }
   if (t.id === "np-type") {
     const n = document.getElementById("np-name");
-    if (n) n.dataset.ac = t.value;
+    if (n) {
+      n.dataset.ac = t.value === "cxbox" ? "" : t.value;
+      n.placeholder = t.value === "cxbox" ? "Nome sulla scatola, es. Armor Knight GV" : "Nome sulla scatola, es. Tide Whale o 3-60";
+    }
     const c = document.getElementById("np-code");
     if (c) c.hidden = t.value !== "bit";
     return;
@@ -155,6 +158,15 @@ document.getElementById("main").addEventListener("submit", (e) => {
   if (e.target.id === "add-part") {
     const type = document.getElementById("np-type").value, name = document.getElementById("np-name").value.trim(), code = document.getElementById("np-code").value.trim();
     if (!name) return;
+    if (type === "cxbox") {
+      const r = addCxBox(name);
+      toast(r.msg);
+      if (r.ok) {
+        save();
+        render();
+      }
+      return;
+    }
     const existing = S.parts.find((p) => p.type === type && p.name.toLowerCase() === name.toLowerCase());
     if (existing) {
       existing.qty = (+existing.qty || 0) + 1;
@@ -165,7 +177,7 @@ document.getElementById("main").addEventListener("submit", (e) => {
       const p = autoCatalog({ id: uid(), type, name, code: type === "bit" ? code : "", metaName: m, kind: "", qty: 1, avoid: false, note: "" });
       if (!p.metaName) p.metaName = matchName(p);
       S.parts.push(p);
-      toast(p.cat ? `Aggiunto: ${name}, riconosciuto come ${p.cat} (${p.kind}${p.integrated ? ", ratchet integrato" : ""}${p.left ? ", gira a sinistra" : ""})` : `Aggiunto: ${name}. Non l'ho trovato nel catalogo: scegli tu il tipo`);
+      toast(p.cat ? `Aggiunto: ${p.name}, riconosciuto come ${p.cat}${p.kind ? ` (${p.kind}${p.integrated ? ", ratchet integrato" : ""}${p.left ? ", gira a sinistra" : ""})` : ""}` : `Aggiunto: ${name}. Non l'ho trovato nel catalogo${["blade", "bit", "mainblade"].includes(type) ? ": scegli tu il tipo" : ""}`);
     }
     save();
     render();

@@ -1,13 +1,14 @@
 // ---------- Riferimenti ai pezzi ----------
 // Deck, tornei e allenamenti salvano ogni pezzo mio con il suo id: {blade, ratchet, bit}.
-// Ratchet vuoto = ratchet integrato. Le lame CX hanno id "cx:<lock chip>:<main blade>:<assist>".
+// Ratchet vuoto = ratchet integrato. Le lame CX hanno id "cx:<lock chip>:<main blade>:<assist>[:<over blade>]".
 // I dati vecchi avevano il nome del pezzo (o la sigla della punta): ref() li riconosce ancora e migrateRefs() li sostituisce con l'id.
 // Le combo avversarie (mine:false) restano testo libero.
 
 function cxFromId(id, parts){
-  const m=/^cx:([^:]+):([^:]+):([^:]+)$/.exec(id); if(!m) return null;
-  const [c,mb,a]=m.slice(1).map(x=>parts.find(p=>p.id===x)); if(!c||!mb||!a) return null;
-  return {id, type:"blade", cx:true, comps:[c.id,mb.id,a.id], name:`${c.name} ${mb.name} ${a.name}`, kind:mb.kind||"", left:!!mb.left, integrated:false};
+  const m=/^cx:([^:]+):([^:]+):([^:]+)(?::([^:]+))?$/.exec(id); if(!m) return null;
+  const [c,mb,a]=m.slice(1,4).map(x=>parts.find(p=>p.id===x)); const o=m[4]?parts.find(p=>p.id===m[4]):null;
+  if(!c||!mb||!a||(m[4]&&!o)) return null;
+  return {id, type:"blade", cx:true, comps:[c.id,mb.id,a.id].concat(o?[o.id]:[]), name:`${c.name} ${mb.name} ${o?o.name+" ":""}${a.name}`, kind:mb.kind||"", left:!!mb.left, integrated:false};
 }
 // Il pezzo a cui punta un valore salvato (id, nome, sigla della punta o nome nei tornei); null se non c'è più
 function ref(type, v, parts){

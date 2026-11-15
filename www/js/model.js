@@ -15,11 +15,12 @@ var __spreadValues = (a, b) => {
   return a;
 };
 function cxFromId(id, parts) {
-  const m = /^cx:([^:]+):([^:]+):([^:]+)$/.exec(id);
+  const m = /^cx:([^:]+):([^:]+):([^:]+)(?::([^:]+))?$/.exec(id);
   if (!m) return null;
-  const [c, mb, a] = m.slice(1).map((x) => parts.find((p) => p.id === x));
-  if (!c || !mb || !a) return null;
-  return { id, type: "blade", cx: true, comps: [c.id, mb.id, a.id], name: `${c.name} ${mb.name} ${a.name}`, kind: mb.kind || "", left: !!mb.left, integrated: false };
+  const [c, mb, a] = m.slice(1, 4).map((x) => parts.find((p) => p.id === x));
+  const o = m[4] ? parts.find((p) => p.id === m[4]) : null;
+  if (!c || !mb || !a || m[4] && !o) return null;
+  return { id, type: "blade", cx: true, comps: [c.id, mb.id, a.id].concat(o ? [o.id] : []), name: `${c.name} ${mb.name} ${o ? o.name + " " : ""}${a.name}`, kind: mb.kind || "", left: !!mb.left, integrated: false };
 }
 function ref(type, v, parts) {
   parts = parts || S.parts;

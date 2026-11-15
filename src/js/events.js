@@ -19,7 +19,7 @@ document.getElementById("main").addEventListener("change",e=>{
     // nome o sigla cambiati, oppure tipo rimesso su automatico: si ricontrolla il catalogo
     if(["name","code","kind"].includes(f)){ autoCatalog(p); if(f!=="kind" && !p.metaName) p.metaName=matchName(p) }
     save(); render(); return }
-  if(t.id==="np-type"){ const n=document.getElementById("np-name"); if(n) n.dataset.ac=t.value; const c=document.getElementById("np-code"); if(c) c.hidden=t.value!=="bit"; return }
+  if(t.id==="np-type"){ const n=document.getElementById("np-name"); if(n){ n.dataset.ac=t.value==="cxbox"?"":t.value; n.placeholder=t.value==="cxbox"?"Nome sulla scatola, es. Armor Knight GV":"Nome sulla scatola, es. Tide Whale o 3-60" } const c=document.getElementById("np-code"); if(c) c.hidden=t.value!=="bit"; return }
   if(t.id==="rule-bit"){ S.settings.bitTypeLimit=t.checked; aiResult=null; save(); render() }
   if(t.id==="pw"){ S.settings.personalWeight=+t.value; save(); render() }
   if(t.id==="ch-user"){ S.settings.challonge=t.value.trim(); save(); render() }
@@ -47,11 +47,12 @@ document.getElementById("main").addEventListener("submit",e=>{
   if(e.target.id==="add-part"){
     const type=document.getElementById("np-type").value, name=document.getElementById("np-name").value.trim(), code=document.getElementById("np-code").value.trim();
     if(!name) return;
+    if(type==="cxbox"){ const r=addCxBox(name); toast(r.msg); if(r.ok){ save(); render() } return }
     const existing=S.parts.find(p=>p.type===type && p.name.toLowerCase()===name.toLowerCase());
     if(existing){ existing.qty=(+existing.qty||0)+1; toast(`${name}: ora ne hai ${existing.qty}`) }
     else { const names=(meta()[type]||[]).map(x=>x[0]); const m=names.find(n=>n.toLowerCase()===name.toLowerCase())||"";
       const p=autoCatalog({id:uid(),type,name,code:type==="bit"?code:"",metaName:m,kind:"",qty:1,avoid:false,note:""}); if(!p.metaName) p.metaName=matchName(p);
-      S.parts.push(p); toast(p.cat?`Aggiunto: ${name}, riconosciuto come ${p.cat} (${p.kind}${p.integrated?", ratchet integrato":""}${p.left?", gira a sinistra":""})`:`Aggiunto: ${name}. Non l'ho trovato nel catalogo: scegli tu il tipo`) }
+      S.parts.push(p); toast(p.cat?`Aggiunto: ${p.name}, riconosciuto come ${p.cat}${p.kind?` (${p.kind}${p.integrated?", ratchet integrato":""}${p.left?", gira a sinistra":""})`:""}`:`Aggiunto: ${name}. Non l'ho trovato nel catalogo${["blade","bit","mainblade"].includes(type)?": scegli tu il tipo":""}`) }
     save(); render(); return;
   }
   if(e.target.id==="res-form"){

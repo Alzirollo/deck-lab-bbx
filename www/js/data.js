@@ -33,8 +33,8 @@ BUILTIN_META.combos = "Wizard Rod|1-60|Hexa|380;Shark Scale|1-70|Low Rush|100;Ho
   return [a[0], a[1], a[2], +a[3]];
 });
 const KINDS = ["attacco", "difesa", "resistenza", "equilibrio"];
-const TYPE_LABEL = { blade: "Lama", ratchet: "Ratchet", bit: "Punta", lockchip: "Lock chip", mainblade: "Main blade", assist: "Assist blade" };
-const CX_TYPES = ["lockchip", "mainblade", "assist"];
+const TYPE_LABEL = { blade: "Lama", ratchet: "Ratchet", bit: "Punta", lockchip: "Lock chip", overblade: "Over blade", mainblade: "Main blade", assist: "Assist blade" };
+const CX_TYPES = ["lockchip", "overblade", "mainblade", "assist"];
 const PERIOD_LABEL = { year: "ultimo anno", month: "ultimo mese", week: "ultima settimana", all: "tutto lo storico" };
 const fallback = () => 5;
 const normKey = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");

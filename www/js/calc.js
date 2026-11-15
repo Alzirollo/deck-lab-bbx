@@ -94,8 +94,8 @@ function scorer() {
     const hit = p.metaName && maps[p.type] ? maps[p.type].get(normKey(p.metaName)) : null;
     let m = hit ? hit.score : fallback();
     if (p.cx) {
-      const a = p.assistPart;
-      const ah = a && (a.metaName || a.name) ? maps.assist.get(normKey(a.metaName || a.name)) : null;
+      const a = p.assistPart, o = p.overPart, an = a ? a.metaName || a.cat || a.name : "", on = o ? o.metaName || o.cat || o.name : "";
+      const ah = on && an && maps.assist.get(normKey(on + " " + an)) || an && maps.assist.get(normKey(an)) || null;
       m = 0.8 * m + 0.2 * (ah ? ah.score : fallback());
     }
     const s = st.get(p.type + ":" + p.id);
@@ -162,29 +162,32 @@ function eligible(type) {
 }
 function cxBlades(onlyUsable) {
   const ok = (p) => (+p.qty || 0) > 0 && (!onlyUsable || !p.avoid);
-  const C = S.parts.filter((p) => p.type === "lockchip" && ok(p)), M = S.parts.filter((p) => p.type === "mainblade" && ok(p)), A = S.parts.filter((p) => p.type === "assist" && ok(p));
-  const metaKeys = new Map((meta().blade || []).map(([n]) => [canon(n), n]));
+  const of = (t) => S.parts.filter((p) => p.type === t && ok(p));
+  const C = of("lockchip"), M = of("mainblade"), A = of("assist"), O = [null, ...of("overblade")];
   const out = [];
-  for (const c of C) for (const m of M) for (const a of A) {
-    const full = `${c.metaName || c.name} ${m.metaName || m.name}`;
-    out.push({
-      id: `cx:${c.id}:${m.id}:${a.id}`,
-      type: "blade",
-      cx: true,
-      comps: [c.id, m.id, a.id],
-      chip: c,
-      main: m,
-      assistPart: a,
-      name: `${c.name} ${m.name} ${a.name}`,
-      metaName: metaKeys.get(canon(full)) || "",
-      kind: m.kind || "",
-      integrated: false,
-      left: !!m.left,
-      qty: 1,
-      note: ""
-    });
-  }
+  for (const c of C) for (const m of M) for (const a of A) for (const o of O) out.push(cxBlade(c, m, a, o));
   return out;
+}
+function cxBlade(c, m, a, o) {
+  const metaKeys = new Map((meta().blade || []).map(([n]) => [canon(n), n]));
+  const full = `${c.metaName || c.cat || c.name} ${m.metaName || m.cat || m.name}`;
+  return {
+    id: `cx:${c.id}:${m.id}:${a.id}${o ? ":" + o.id : ""}`,
+    type: "blade",
+    cx: true,
+    comps: [c.id, m.id, a.id].concat(o ? [o.id] : []),
+    chip: c,
+    main: m,
+    assistPart: a,
+    overPart: o || null,
+    name: `${c.name} ${m.name} ${o ? o.name + " " : ""}${a.name}`,
+    metaName: metaKeys.get(canon(full)) || "",
+    kind: m.kind || "",
+    integrated: false,
+    left: !!m.left,
+    qty: 1,
+    note: ""
+  };
 }
 function bladeChoices(includeAvoided) {
   const own = S.parts.filter((p) => p.type === "blade" && (includeAvoided || !p.avoid));

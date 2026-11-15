@@ -8,12 +8,20 @@ const CAT_BLADES = "Luster Dragoon||A|L;Sieg Superion|Suppress Superion|B|;Hells
 const CAT_BITS = "A|Accel|A;RA|Rubber Accel|A;B|Ball|S;DB|Disk Ball|S;FB|Free Ball|S;GB|Gear Ball/Glide Ball|S;WB|Wall Ball|S;C|Cyclone|A;LC|Low Cyclone|A;D|Dot|D;E|Elevate|B;F|Flat|A;FF|Free Flat|A;GF|Gear Flat/Glide Flat|A;UF|Under Flat|A;LF|Low Flat|A;G|Glide|S;H|Hexa|B;I|Ignition|A;J|Jolt|A;K|Kick|B;TK|Trans Kick/Taper Kick|B;L|Level|A;M|Merge|B;N|Needle|D;HN|High Needle|D;GN|Gear Needle|D;MN|Metal Needle|D;UN|Under Needle|D;Nr|Narrow|S;O|Orb|S;LO|Low Orb|S;P|Point|B;LP|Low Point|B;GP|Gear Point/Glide Point|B;TP|Trans Point/Taper Point|B;Q|Quake|A;R|Rush|A;GR|Gear Rush/Glide Rush|A;LR|Low Rush|A;S|Spike|D;BS|Bound Spike|D;DS|Disk Spike|D;T|Taper|B;MT|Metal Taper|B;HT|High Taper|B;U|Unite|B;GU|Gear Unite/Glide Unite|B;V|Vortex|A;W|Wedge|D;WW|Wall Wedge|D;Y|Yielding|S;Z|Zap|B;Op|Operate|B;Tr|Turbo|A";
 // Main blade CX: Takara | Hasbro | tipo
 const CAT_MAIN = "Brave|Courage|A;Arc|Arc|S;Dark|Dark|D;Eclipse|Eclipse|B;Hunt|Hunt|S;Flare|Flare|D;Blitz|Blitz|A;Fortress|Armor|D;Rage|Rage|S;Fang|Fang|A;Volt|Volt|A;Blast|Blast|A";
+// Lock chip CX: Takara | Hasbro
+const CAT_CHIP = "Dran|Dran;Wizard|Wizard;Perseus|Perseus;Hells|Incendio;Fox|Fox;Pegasus|Pegasus;Cerberus|Cerberus;Sol|Sol;Wolf|Wolf;Phoenix|Phoenix;Bahamut|Bahamut;Knight|Knight;Ragna|Ragna;Leon|Leon;Emperor|Emperor;Valkyrie|Valkyrie;Brachio|Brachio";
+// Assist blade CX (sulla scatola Hasbro: auxiliary blade) e over blade: lettera | nome. Fonte: beycommunity.com, beysandbricks.com
+const CAT_ASSIST = "S|Slash;R|Round;B|Bumper;J|Jaggy;M|Massive;C|Charge;T|Turn;W|Wheel;A|Assault;D|Dual;F|Free;H|Heavy;Z|Zillion;K|Knuckle;V|Vertical;E|Erase;O|Odd;G|Gravity;Q|Quell";
+const CAT_OVER = "G|Guard";
 const CAT_KIND = {A:"attacco", D:"difesa", S:"resistenza", B:"equilibrio"};
 const CATALOG = (() => {
   const out = [];
   CAT_BLADES.split(";").forEach(r => { const [jp, us, k, sp, int] = r.split("|"); out.push({type:"blade", jp, us:us||"", names:[jp, us].filter(Boolean), kind:CAT_KIND[k], left:sp==="L", integrated:int==="int"}) });
   CAT_BITS.split(";").forEach(r => { const [code, ns, k] = r.split("|"); const names = ns.split("/"); out.push({type:"bit", jp:names[0], us:names[0], code, names, kind:CAT_KIND[k]}) });
   CAT_MAIN.split(";").forEach(r => { const [jp, us, k] = r.split("|"); out.push({type:"mainblade", jp, us, names:[jp, us], kind:CAT_KIND[k]}) });
+  CAT_CHIP.split(";").forEach(r => { const [jp, us] = r.split("|"); out.push({type:"lockchip", jp, us, names:[...new Set([jp, us])]}) });
+  CAT_ASSIST.split(";").forEach(r => { const [code, n] = r.split("|"); out.push({type:"assist", jp:n, us:n, code, names:[n]}) });
+  CAT_OVER.split(";").forEach(r => { const [code, n] = r.split("|"); out.push({type:"overblade", jp:n, us:n, code, names:[n]}) });
   return out;
 })();
 const catKey = s => String(s||"").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -24,9 +32,10 @@ function lev(a, b){ if(a===b) return 0; const m=a.length, n=b.length; if(!m||!n)
 // Il pezzo del catalogo che corrisponde a un nome (o alla sigla di una punta); tollera un paio di errori di battitura
 function catalogMatch(type, name, code){
   const list = CATALOG.filter(c => c.type===type); if(!list.length) return null;
+  const lettered = ["bit","assist","overblade"].includes(type); // si riconoscono anche dalla sigla
   if(type==="bit" && code){ const c = list.find(x => x.code===code) || list.find(x => x.code.toLowerCase()===String(code).toLowerCase()); if(c) return c }
   if(!name) return null;
-  if(type==="bit"){ const c = list.find(x => x.code===String(name).trim()); if(c) return c }
+  if(lettered){ const n0=String(name).trim(); const c = list.find(x => x.code===n0) || (type!=="bit" && n0.length===1 ? list.find(x => x.code===n0.toUpperCase()) : null); if(c) return c }
   const keys = catKeys(name);
   let hit = list.find(c => c.names.some(n => catKeys(n).some(k => keys.includes(k)))); if(hit) return hit;
   let best = null, bd = 99;
@@ -35,11 +44,12 @@ function catalogMatch(type, name, code){
 }
 // Compila tipo, rotazione, ratchet integrato e sigla della punta dal catalogo. Il tipo scelto a mano (kindSrc "manual") resta.
 function autoCatalog(p){
-  if(!p || !["blade","bit","mainblade"].includes(p.type)) return p;
+  if(!p || !["blade","bit",...CX_TYPES].includes(p.type)) return p;
   const c = catalogMatch(p.type, p.name, p.code);
   p.cat = c ? c.jp : "";
   if(!c){ if(p.kind && !p.kindSrc) p.kindSrc="manual"; return p } // pezzo sconosciuto: il tipo già scelto resta
-  if(p.kindSrc!=="manual") p.kind = c.kind;
+  if(c.kind && p.kindSrc!=="manual") p.kind = c.kind;
+  if(c.code && p.type!=="bit" && catKey(p.name)===catKey(c.code)) p.name = c.jp; // scritto solo "V": diventa "Vertical"
   if(c.left) p.left = true;
   if(c.integrated) p.integrated = true;
   if(p.type==="bit" && !p.code) p.code = c.code;
