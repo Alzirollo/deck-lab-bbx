@@ -90,7 +90,7 @@ function scorer() {
   const maps = { blade: metaMap("blade"), ratchet: metaMap("ratchet"), bit: metaMap("bit"), assist: metaMap("assist") };
   const st = personalStats(true);
   const pw = (+S.settings.personalWeight || 0) / 100;
-  return (p) => {
+  const f = (p) => {
     const hit = p.metaName && maps[p.type] ? maps[p.type].get(normKey(p.metaName)) : null;
     let m = hit ? hit.score : fallback();
     if (p.cx) {
@@ -102,11 +102,17 @@ function scorer() {
     let pers = null, w = 0;
     if (s && s.w + s.l > 0) {
       const g = s.w + s.l;
-      pers = (s.w + 1) / (g + 2) * 100;
+      pers = s.pct != null ? s.pct : (s.w + 1) / (g + 2) * 100;
       w = pw * g / (g + 4);
     }
     return { meta: m, metaRank: hit ? hit.rank : null, pers, games: s ? Math.round(s.w + s.l) : 0, total: pers == null ? m : m * (1 - w) + pers * w };
   };
+  f.pw = pw;
+  f.combo = (key) => {
+    const s = st.get("combo:" + key);
+    return s && s.w + s.l > 0 ? { pct: s.pct != null ? s.pct : (s.w + 1) / (s.w + s.l + 2) * 100, g: s.w + s.l } : null;
+  };
+  return f;
 }
 function comboScore(b, r, t, sc, ci) {
   const sb = sc(b).total, sr = r.id === "int" ? 55 : sc(r).total, st = sc(t).total;
@@ -146,8 +152,16 @@ function comboScore(b, r, t, sc, ci) {
     syn -= 4;
     why.push("ratchet segnato come difettoso");
   }
-  syn = Math.round(syn);
-  return { score: 0.45 * sb + 0.25 * sr + 0.3 * st + syn, sb, sr, st, syn, why, pair };
+  let base = 0.45 * sb + 0.25 * sr + 0.3 * st;
+  const pw = sc.pw || 0;
+  const cp = sc.combo ? sc.combo(comboId({ blade: b.id, ratchet: r.id === "int" ? "" : r.id, bit: t.id })) : null;
+  if (cp && pw > 0) {
+    const wc = pw * cp.g / (cp.g + 4);
+    base = base * (1 - wc) + cp.pct * wc;
+    why.push(`con questa combo esatta: forza ${Math.round(cp.pct)} su 100 (50 = nella media delle tue combo)`);
+  }
+  syn = Math.round(syn * (1 - pw));
+  return { score: base + syn, sb, sr, st, syn, why, pair };
 }
 function eligible(type) {
   const seen = /* @__PURE__ */ new Set();

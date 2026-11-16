@@ -40,13 +40,17 @@ function games() {
   (S.trainLog || []).forEach((e) => {
     const mvm = !!(e.b && e.b.mine !== false);
     const f = mvm && e.solo && (e.first === "a" || e.first === "b") ? e.side === e.first ? SOLO_FIRST_WIN : SOLO_SECOND_WIN : 1;
-    push(e.a, e.side === "a", e.side === "draw", e.f, e.t, "allenamento", { arena: e.arena, wt: trainWeight(e.arena, e.a, mvm) * f });
-    if (mvm) push(e.b, e.side === "b", e.side === "draw", e.f, e.t, "allenamento", { arena: e.arena, wt: trainWeight(e.arena, e.b, true) * f });
+    const wa = trainWeight(e.arena, e.a, mvm) * f, wb = mvm ? trainWeight(e.arena, e.b, true) * f : 0;
+    push(e.a, e.side === "a", e.side === "draw", e.f, e.t, "allenamento", __spreadValues({ arena: e.arena, wt: wa }, mvm ? { opp: e.b, lead: true, pairWt: Math.min(wa, wb) } : {}));
+    if (mvm) push(e.b, e.side === "b", e.side === "draw", e.f, e.t, "allenamento", { arena: e.arena, wt: wb, opp: e.a, lead: false, pairWt: Math.min(wa, wb) });
   });
   return out.sort((a, b) => a.t - b.t);
 }
 const battleRecords = () => games().filter((r) => !r.agg);
+let _pstats = {};
 function personalStats(withTraining) {
+  const ck = withTraining ? "t" : "n";
+  if (_pstats[ck]) return _pstats[ck];
   const st = /* @__PURE__ */ new Map();
   const add = (k, w, l) => {
     const o = st.get(k) || { w: 0, l: 0 };
@@ -54,11 +58,69 @@ function personalStats(withTraining) {
     o.l += l;
     st.set(k, o);
   };
-  for (const g of games()) {
-    if (g.draw || !withTraining && g.src !== "torneo") continue;
+  const G = games().filter((g) => !g.draw && (withTraining || g.src === "torneo"));
+  for (const g of G) {
     const w = g.won ? g.wt : 0, l = g.won ? 0 : g.wt, c = g.combo;
     for (const t of ["blade", "ratchet", "bit"]) if (c[t]) add(t + ":" + refId(t, c[t]), w, l);
     add("combo:" + g.key, w, l);
   }
-  return st;
+  const levels = { combo: (c) => comboId(c) };
+  for (const t of ["blade", "ratchet", "bit"]) levels[t] = (c) => c[t] ? refId(t, c[t]) : "";
+  for (const [lv, keyOf] of Object.entries(levels)) {
+    const fit = btFit(G, keyOf);
+    for (const [k, v] of fit) {
+      const o = st.get(lv + ":" + k);
+      if (o) {
+        o.pct = v.pct;
+        o.g = v.g;
+      }
+    }
+  }
+  return _pstats[ck] = st;
+}
+function btFit(G, keyOf) {
+  const M = [];
+  for (const g of G) {
+    const i = keyOf(g.combo);
+    if (!i) continue;
+    let j;
+    if (g.opp) {
+      if (!g.lead) continue;
+      j = keyOf(g.opp);
+      if (!j || j === i) continue;
+    } else j = "F:" + (g.src === "torneo" ? "torneo" : "avv");
+    const w = g.opp ? g.pairWt : g.wt;
+    if (!(w > 0)) continue;
+    M.push(g.won ? [i, j, w] : [j, i, w]);
+  }
+  const nodes = [...new Set(M.flatMap((m) => [m[0], m[1]]))];
+  if (!nodes.length) return /* @__PURE__ */ new Map();
+  const p = new Map(nodes.map((n) => [n, 1])), W = new Map(nodes.map((n) => [n, 0])), N = new Map(nodes.map((n) => [n, 0]));
+  for (const [a, b, w] of M) {
+    W.set(a, W.get(a) + w);
+    N.set(a, N.get(a) + w);
+    N.set(b, N.get(b) + w);
+  }
+  const PRIOR = 1;
+  for (let it = 0; it < 300; it++) {
+    const den = new Map(nodes.map((n) => [n, 2 * PRIOR / (p.get(n) + 1)]));
+    for (const [a, b, w] of M) {
+      const x = w / (p.get(a) + p.get(b));
+      den.set(a, den.get(a) + x);
+      den.set(b, den.get(b) + x);
+    }
+    let ch = 0;
+    for (const n of nodes) {
+      const v = (W.get(n) + PRIOR) / den.get(n);
+      ch = Math.max(ch, Math.abs(Math.log(v / p.get(n))));
+      p.set(n, v);
+    }
+    if (ch < 1e-6) break;
+  }
+  const mine = nodes.filter((n) => !n.startsWith("F:"));
+  const gm = Math.exp(mine.reduce((a, n) => a + Math.log(p.get(n)), 0) / (mine.length || 1));
+  return new Map(nodes.map((n) => {
+    const v = p.get(n) / gm;
+    return [n, { pct: v / (v + 1) * 100, g: N.get(n) }];
+  }));
 }

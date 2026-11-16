@@ -1,6 +1,7 @@
 // Interfaccia comune: disegno delle schede, sezioni richiudibili, avvisi, menu
 // ---------- Rendering ----------
 function render(){
+  _pstats = {}; // i dati possono essere cambiati: la classifica personale si ricalcola
   document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-selected", String(b.dataset.tab===tab)));
   const ct=document.getElementById("cur-tab"); const cb=document.querySelector(`nav button[data-tab="${tab}"]`); if(ct&&cb) ct.textContent=cb.textContent;
   const m=document.getElementById("main");

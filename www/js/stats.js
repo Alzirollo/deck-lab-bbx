@@ -43,11 +43,13 @@ function windowEst(list) {
   return shrink(W, N);
 }
 function deckEstimate(keys, recs) {
+  const st = personalStats(true);
   const per = keys.map((k) => {
     const l = recs.filter((r) => r.key === k && !r.draw);
     const w = l.filter((r) => r.won).length;
     const q = weighted(l);
-    return { k, w, n: l.length, N: q.N, est: shrink(q.W, q.N) };
+    const s = st.get("combo:" + k);
+    return { k, w, n: l.length, N: q.N, est: s && s.pct != null ? s.pct / 100 : shrink(q.W, q.N) };
   });
   return { per, est: per.reduce((a, x) => a + x.est, 0) / (per.length || 1) };
 }
@@ -99,7 +101,7 @@ function vDeckStats(d, sum) {
     return `<div class="cfg"><span style="min-width:0">${esc(comboText(c))}</span><span class="mono small">${co.w}-${co.l}${co.d ? `-${co.d}` : ""} \xB7 ${l.length} scontri</span><b class="mono" title="stima">${est}%</b>${estBar(est)}</div>`;
   }).join("")}
       </div>
-      <details class="small muted"><summary>Come si calcola la stima</summary><p>\xC8 la media delle tre trottole, ognuna nella sua configurazione esatta e in tutti i suoi scontri; ogni trottola pesa un terzo. Ogni scontro pesa come nel Builder: torneo 1, allenamento in arena da torneo 0,6, arena Hasbro 0,2 (difesa 0,03), mia contro mia la met\xE0, lancio da solo corretto. Con pochi scontri la stima resta vicina al 50%.</p></details>
+      <details class="small muted"><summary>Come si calcola la stima</summary><p>\xC8 la media delle tre trottole, ognuna nella sua configurazione esatta e in tutti i suoi scontri; ogni trottola pesa un terzo. La stima di una trottola tiene conto di chi ha battuto: 50% vuol dire alla pari con una tua combo media. Ogni scontro pesa come nel Builder: torneo 1, allenamento in arena da torneo 0,6, arena Hasbro 0,2 (difesa 0,03), mia contro mia la met\xE0, lancio da solo corretto. Con pochi scontri la stima resta vicina al 50%.</p></details>
     </div>`;
 }
 function kindOfBit(v) {

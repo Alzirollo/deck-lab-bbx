@@ -50,7 +50,7 @@ function vDeck(){
   return `
   <section class="panel">
     <h2>Costruisci il deck</h2>
-    <p class="muted">L'indice combina tre cose: quanto spesso ogni pezzo arriva in top cut, se la lama viene usata davvero con quella punta e quel ratchet nei deck del meta, e i tuoi risultati registrati, tornei e allenamenti.</p>
+    <p class="muted">L'indice combina tre cose: quanto spesso ogni pezzo arriva in top cut, se la lama viene usata davvero con quella punta e quel ratchet nei deck del meta, e i tuoi risultati registrati, tornei e allenamenti. Il cursore decide quanto contano i tuoi risultati rispetto al meta: a 100% gli abbinamenti del meta non contano più e, dove hai abbastanza scontri, valgono solo i tuoi dati. I tuoi risultati tengono conto di chi hai battuto: negli scontri tra tue combo, battere una combo forte vale di più che battere una debole.</p>
     <div class="grid2">
       <label class="chk"><input type="checkbox" id="rule-bit" ${st.bitTypeLimit?"checked":""}> Regola local: massimo una punta per tipo</label>
       <label class="f">Peso dei tuoi risultati: <span class="mono" id="pw-val">${st.personalWeight}%</span>

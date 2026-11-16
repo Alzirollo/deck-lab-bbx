@@ -40,7 +40,7 @@ function ownsCanon(type,k){ return S.parts.some(p=>p.type===type && (+p.qty||0)>
 function scorer(){
   const maps = {blade:metaMap("blade"), ratchet:metaMap("ratchet"), bit:metaMap("bit"), assist:metaMap("assist")};
   const st = personalStats(true); const pw = (+S.settings.personalWeight||0)/100;
-  return p => {
+  const f = p => {
     const hit = p.metaName && maps[p.type] ? maps[p.type].get(normKey(p.metaName)) : null;
     let m = hit ? hit.score : fallback();
     if(p.cx){ // assist blade nelle classifiche; con l'over blade MetaBeys scrive le due insieme, es. "Guard Wheel"
@@ -48,9 +48,13 @@ function scorer(){
       const ah=(on&&an&&maps.assist.get(normKey(on+" "+an))) || (an&&maps.assist.get(normKey(an))) || null;
       m = 0.8*m + 0.2*(ah?ah.score:fallback()) }
     const s = st.get(p.type+":"+p.id); let pers=null, w=0;
-    if(s && (s.w+s.l)>0){ const g=s.w+s.l; pers=(s.w+1)/(g+2)*100; w=pw*g/(g+4) }
+    if(s && (s.w+s.l)>0){ const g=s.w+s.l; pers=s.pct!=null?s.pct:(s.w+1)/(g+2)*100; w=pw*g/(g+4) }
     return {meta:m, metaRank:hit?hit.rank:null, pers, games:s?Math.round(s.w+s.l):0, total: pers==null?m:m*(1-w)+pers*w};
   };
+  // per comboScore: peso dei tuoi risultati e classifica della combo esatta
+  f.pw = pw;
+  f.combo = key => { const s=st.get("combo:"+key); return s&&(s.w+s.l)>0 ? {pct:s.pct!=null?s.pct:(s.w+1)/(s.w+s.l+2)*100, g:s.w+s.l} : null };
+  return f;
 }
 function comboScore(b,r,t,sc,ci){
   const sb=sc(b).total, sr=r.id==="int"?55:sc(r).total, st=sc(t).total;
@@ -79,8 +83,12 @@ function comboScore(b,r,t,sc,ci){
     why.push("pochi dati sugli abbinamenti di questa lama");
   }
   if(r.note && /balla|lento|rotto/i.test(r.note)){ syn-=4; why.push("ratchet segnato come difettoso") }
-  syn=Math.round(syn);
-  return {score: .45*sb+.25*sr+.30*st+syn, sb, sr, st, syn, why, pair};
+  // I tuoi risultati con questa combo esatta, e gli abbinamenti del meta che contano sempre meno man mano che alzi il cursore
+  let base=.45*sb+.25*sr+.30*st; const pw=sc.pw||0;
+  const cp=sc.combo?sc.combo(comboId({blade:b.id, ratchet:r.id==="int"?"":r.id, bit:t.id})):null;
+  if(cp && pw>0){ const wc=pw*cp.g/(cp.g+4); base=base*(1-wc)+cp.pct*wc; why.push(`con questa combo esatta: forza ${Math.round(cp.pct)} su 100 (50 = nella media delle tue combo)`) }
+  syn=Math.round(syn*(1-pw));
+  return {score: base+syn, sb, sr, st, syn, why, pair};
 }
 function eligible(type){
   const seen=new Set();

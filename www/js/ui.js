@@ -1,4 +1,5 @@
 function render() {
+  _pstats = {};
   document.querySelectorAll("nav button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === tab)));
   const ct = document.getElementById("cur-tab");
   const cb = document.querySelector(`nav button[data-tab="${tab}"]`);
